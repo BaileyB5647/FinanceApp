@@ -1,5 +1,8 @@
 package com.example.financeapp;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.StackedBarChart;
@@ -9,6 +12,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 
 import javax.swing.text.NumberFormatter;
 import java.sql.Date;
@@ -18,6 +22,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Locale;
+import java.util.Objects;
 
 public class AppController {
     //Available Screen Space
@@ -27,11 +32,10 @@ public class AppController {
     Transaction t1 = new Transaction(Category.Groceries, Date.valueOf(LocalDate.now()),
             "Test", 102.00, true);
 
-    ArrayList<Transaction> testData = new ArrayList<>();
+    ArrayList<Transaction> transactions = new ArrayList<>();
 
     public Tab getDashboardTab(){
-        testData.add(t1);
-
+        transactions.add(t1);
         // Dashboard Tab Setup
         Tab dashboard = new Tab("Dashboard");
         dashboard.setClosable(false);
@@ -83,10 +87,10 @@ public class AppController {
 
         // Balance Value
 
-        Label balanceValue = new Label(NumberFormat.getCurrencyInstance(Locale.UK).format(getBalance(testData)));
+        Label balanceValue = new Label(NumberFormat.getCurrencyInstance(Locale.UK).format(getBalance(transactions)));
         balanceValue.getStyleClass().add("balanceValue");
 
-        if (getBalance(testData) > 0 ){
+        if (getBalance(transactions) > 0 ){
             balanceValue.setId("positive");
         } else {
             balanceValue.setId("negative");
@@ -237,6 +241,14 @@ public class AppController {
 
         // Add Transaction Button:
         Button addTransaction = new Button("Add Transaction");
+
+        addTransaction.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                newTransactionDialogue();
+            }
+        });
+
         addTransaction.getStyleClass().add("transactionButton");
         addTransaction.setPrefSize(screenWidth/4, screenHeight/8);
 
@@ -251,58 +263,69 @@ public class AppController {
         return dashboard;
     }
 
+    public void newTransactionDialogue(){
+        Stage dialog = new Stage();
+        dialog.setTitle("Add New Transaction");
+        GridPane gridPane = new GridPane();
+        gridPane.setId("transactionRoot");
+
+        Scene addTransactionScene = new Scene(gridPane);
+        addTransactionScene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
 
 
+        ColumnConstraints col0 = new ColumnConstraints(screenWidth/6);
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth/6);
 
-    public StackedBarChart<Number, String> getBudgetDisplay(){
-        // Create horizontal axes
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setTickLabelsVisible(false);
-        xAxis.setTickMarkVisible(false);
-        xAxis.setMinorTickVisible(false);
-        xAxis.setOpacity(0);
+        RowConstraints row0 = new RowConstraints(screenHeight/8);
+        RowConstraints row1 = new RowConstraints(screenHeight/8);
+        RowConstraints row2 = new RowConstraints(screenHeight/8);
+        RowConstraints row3 = new RowConstraints(screenHeight/8);
+        RowConstraints row4 = new RowConstraints(screenHeight/8);
+        RowConstraints row5 = new RowConstraints(screenHeight/8);
 
-        CategoryAxis yAxis = new CategoryAxis();
-        yAxis.setTickLabelsVisible(false);
-        yAxis.setTickMarkVisible(false);
-        yAxis.setOpacity(0);
+        gridPane.getRowConstraints().addAll(row0, row1, row2, row3, row4, row5);
+        gridPane.getColumnConstraints().addAll(col0, col1);
 
-        // Create chart
-        StackedBarChart<Number, String> chart = new StackedBarChart<>(xAxis, yAxis);
-        chart.setId("budgetChart");
-        chart.setLegendVisible(false);
-        chart.setAnimated(false);
-        chart.setCategoryGap(20);
+        ToggleButton expenseButton = new ToggleButton("Expense");
+        expenseButton.setPrefSize(screenWidth/6, screenHeight/8);
+        expenseButton.getStyleClass().add("toggleButton");
+        expenseButton.setId("redButton");
 
-        // Data values
-        double budgetTotal = 500;
-        double budgetSpent = 250;
+        ToggleButton incomeButton = new ToggleButton("Income");
+        incomeButton.setPrefSize(screenWidth/6, screenHeight/8);
+        incomeButton.getStyleClass().add("toggleButton");
+        incomeButton.setId("greenButton");
 
-        // Series 0: Spent
-        XYChart.Series<Number, String> spentSeries = new XYChart.Series<>();
-        spentSeries.setName("Spent");
-        XYChart.Data<Number, String> spentData = new XYChart.Data<>(budgetSpent, "This Month");
-        spentSeries.getData().add(spentData);
+        ToggleGroup buttonGroup = new ToggleGroup();
+        buttonGroup.getToggles().addAll(expenseButton, incomeButton);
 
-        // Series 1: Remaining
-        XYChart.Series<Number, String> remainingSeries = new XYChart.Series<>();
-        remainingSeries.setName("Remaining");
-        XYChart.Data<Number, String> remainingData = new XYChart.Data<>(budgetTotal - budgetSpent, "This Month");
-        remainingSeries.getData().add(remainingData);
+        HBox toggleButtons = new HBox(expenseButton, incomeButton);
+        toggleButtons.getStyleClass().add("toggleButtonsBox");
 
-        // Add data to chart
-        chart.getData().addAll(spentSeries, remainingSeries);
+        gridPane.add(toggleButtons, 0, 0, 2,1 );
 
-        // Add tooltips
-        Tooltip.install(spentData.getNode(), new Tooltip("Spent: " + budgetSpent));
-        Tooltip.install(remainingData.getNode(), new Tooltip("Remaining: " + (budgetTotal - budgetSpent)));
+        Label dateLabel = new Label("Date:");
+        dateLabel.getStyleClass().add("standardLabel");
 
-        // styling
-        chart.setCategoryGap(0);
-        chart.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
-        chart.setMinSize(0, 0);
+        HBox dateLabelBox = new HBox(dateLabel);
+        dateLabelBox.getStyleClass().add("labelBox");
+        gridPane.add(dateLabelBox, 0, 1);
 
-        return chart;
+        DatePicker datePicker = new DatePicker();
+        gridPane.add(datePicker, 1, 1);
+
+        Label descriptionLabel = new Label("Description:");
+        HBox descriptionLabelBox = new HBox(descriptionLabel);
+
+        gridPane.add(descriptionLabelBox, 0, 2);
+
+        TextField descriptionTextField = new TextField();
+
+        gridPane.add(descriptionTextField, 1, 2);
+
+        dialog.setScene(addTransactionScene);
+        dialog.setOnShown(e -> dialog.centerOnScreen());
+        dialog.show();
     }
 
     public static Tab getForecastTab(){

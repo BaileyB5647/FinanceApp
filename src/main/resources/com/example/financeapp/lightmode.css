@@ -270,4 +270,51 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
 }
 
+/* = = = = = = = = = = = = = = = = = = = = = =
+ Add Transaction Styling
+ = = = = = = = = = = = = = = = = = = = = = = =*/
+ #transactionRoot {
+      green: #00974d;
+      red:   #f3292b;
+
+      grey: #d4d4d4;
+     -fx-padding: 10;
+ }
+
+ .labelBox {
+    -fx-alignment: center;
+
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+
+    -fx-border-color: black;
+    -fx-background-color: grey;
+
+    -fx-border-insets: 10;
+    -fx-background-insets: 10;
+ }
+
+.toggleButtonsBox {
+    -fx-alignment: center;
+}
+
+.toggleButton {
+    -fx-font-size: 20;
+
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-text-fill: white;
+
+    -fx-background-insets: 10;
+    -fx-border-insets: 10;
+
+}
+
+#redButton {
+    -fx-background-color: red;
+}
+
+#greenButton {
+    -fx-background-color: green;
+}
 
