@@ -1,0 +1,273 @@
+#root {
+     green: #00974d;
+     red:   #f3292b;
+
+     grey: #d4d4d4;
+    -fx-padding: 50;
+}
+
+.card {
+    -fx-background-insets: 5;
+    -fx-border-insets: 5;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 4);
+
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+
+    -fx-background-color: white;
+}
+
+.card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.sectionTitle {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+}
+
+.standardLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+}
+
+
+
+.boldLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.line {
+    -fx-stroke: #e5e6e8;
+    -fx-stroke-width: 3;
+}
+
+.buttonsBox {
+    -fx-padding: 10;
+    -fx-alignment: center;
+}
+
+/* = = = = = = = = = = = = = = = = = = = = = =
+ Card One - Balance Data
+ = = = = = = = = = = = = = = = = = = = = = = =*/
+
+.balanceBox {
+    -fx-background-radius: 10;
+    -fx-background-color: grey;
+    -fx-background-insets: 20;
+
+    -fx-border-color: black;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
+
+    -fx-padding: 10;
+
+    -fx-alignment: center;
+}
+
+/* Month Box */
+
+.monthBox {
+    -fx-background-radius: 10;
+    -fx-background-color: #f8ead9;
+    -fx-background-insets: 20;
+
+    -fx-border-color: #e0c9b1;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
+
+    -fx-padding: 10;
+    -fx-alignment: center;
+}
+
+.monthLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 20;
+}
+
+/* Balance Title */
+
+.balanceTitleBox {
+    -fx-alignment: bottom-center;
+}
+
+
+/* Balance Box */
+
+.balanceValue {
+   -fx-font-family: 'Helvetica', sans-serif;
+   -fx-font-size: 25;
+   -fx-font-weight: bold;
+}
+
+#positive {
+    -fx-text-fill: green;
+}
+
+#negative {
+    -fx-text-fill: red;
+}
+
+.balanceBox {
+    -fx-padding: 10;
+
+    -fx-border-radius: 10;
+    -fx-border-color: #e1e1e1;
+    -fx-border-width: 2;
+
+    -fx-background-radius: 10;
+    -fx-background-color: #f6f7f7;
+}
+
+/* = = = = = = = = = = = = = = = = = = = = = =
+ Card Two - Budget Data
+ = = = = = = = = = = = = = = = = = = = = = = =*/
+
+/* Budget Title Box */
+.budgetTitleBox {
+    -fx-padding: 30;
+    -fx-alignment: center-left;
+}
+
+/* Budget Display Bar */
+.budgetDisplayBar {
+    -fx-accent: red;
+    -fx-padding: 20;
+
+}
+
+/* Track (background) */
+.budgetDisplayBar .track {
+    -fx-background-color: green;
+    -fx-background-radius: 12;
+    -fx-background-insets: 0;
+}
+
+/* Filled bar (progress) */
+.budgetDisplayBar .bar {
+    -fx-background-radius: 12;
+    -fx-background-insets: 0;
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.15), 4, 0.0, 0, 2);
+}
+
+/* Display Labels */
+.spentBox {
+    -fx-alignment: center-left;
+}
+
+.remainingBox {
+    -fx-alignment: center-right;
+}
+
+.budgetDisplayLabels {
+    -fx-padding: 20;
+}
+
+/* Dashboard Data Cards */
+.dataTitle {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+    -fx-font-weight: bold;
+}
+
+.dataTitleBox {
+    -fx-alignment: center;
+    -fx-padding: 10;
+}
+
+.valueLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 30;
+    -fx-font-weight: bold;
+}
+
+#white {
+    -fx-text-fill: white;
+}
+
+.greenCard {
+     -fx-background-insets: 15;
+     -fx-border-insets: 15;
+
+     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+
+     -fx-border-radius: 10;
+     -fx-background-radius: 10;
+
+      -fx-alignment: center;
+
+     -fx-background-color: green;
+}
+
+.greenCard:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.redCard {
+     -fx-background-insets: 15;
+     -fx-border-insets: 15;
+
+     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+
+     -fx-border-radius: 10;
+     -fx-background-radius: 10;
+
+      -fx-alignment: center;
+
+     -fx-background-color: red;
+}
+
+.redCard:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.yellowCard {
+     -fx-background-insets: 15;
+     -fx-border-insets: 15;
+
+     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+
+     -fx-border-radius: 10;
+     -fx-background-radius: 10;
+
+      -fx-alignment: center;
+
+     -fx-background-color: #feaf00;
+}
+
+.yellowCard:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+/* Add Transaction Button */
+.transactionButton {
+    -fx-border-radius: 10;
+
+    -fx-background-radius: 10;
+    -fx-background-color: #474d51;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 24;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+
+}
+
+.transactionButton:hover {
+    -fx-background-color: #363c40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.transactionButton:pressed {
+    -fx-background-color: #252b30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+
