@@ -1,43 +1,67 @@
+/* ========== Root Defaults ========== */
 #root {
-     green: #00974d;
-     red:   #f3292b;
+    green: #00974d;
+    red: #f3292b;
+    grey: #d4d4d4;
 
-     grey: #d4d4d4;
     -fx-padding: 50;
 }
 
+/* ========== General Card Style ========== */
 .card {
     -fx-background-insets: 5;
     -fx-border-insets: 5;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 4);
-
     -fx-border-radius: 10;
     -fx-background-radius: 10;
-
     -fx-background-color: white;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 4);
 }
 
 .card:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
 }
 
-.sectionTitle {
+/* ========== Typography ========== */
+.sectionTitle,
+.dataTitle {
     -fx-font-family: 'Helvetica', sans-serif;
     -fx-font-size: 25;
 }
 
-.standardLabel {
+.dataTitle {
+    -fx-font-weight: bold;
+}
+
+.standardLabel,
+.boldLabel {
     -fx-font-family: 'Helvetica', sans-serif;
     -fx-font-size: 18;
 }
 
-
-
 .boldLabel {
-    -fx-font-family: 'Helvetica', sans-serif;
-    -fx-font-size: 18;
     -fx-font-weight: bold;
+}
+
+.monthLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+}
+
+.valueLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 30;
+    -fx-font-weight: bold;
+}
+
+/* ========== Utility ========== */
+.labelBox {
+    -fx-alignment: center-left;
+}
+
+.dataTitleBox {
+    -fx-alignment: center;
 }
 
 .line {
@@ -47,62 +71,12 @@
 
 .buttonsBox {
     -fx-padding: 10;
+    -fx-spacing: 10;
     -fx-alignment: center;
 }
 
-/* = = = = = = = = = = = = = = = = = = = = = =
- Card One - Balance Data
- = = = = = = = = = = = = = = = = = = = = = = =*/
-
-.balanceBox {
-    -fx-background-radius: 10;
-    -fx-background-color: grey;
-    -fx-background-insets: 20;
-
-    -fx-border-color: black;
-    -fx-border-radius: 10;
-    -fx-border-insets: 20;
-
-    -fx-padding: 10;
-
-    -fx-alignment: center;
-}
-
-/* Month Box */
-
-.monthBox {
-    -fx-background-radius: 10;
-    -fx-background-color: #f8ead9;
-    -fx-background-insets: 20;
-
-    -fx-border-color: #e0c9b1;
-    -fx-border-width: 2;
-    -fx-border-radius: 10;
-    -fx-border-insets: 20;
-
-    -fx-padding: 10;
-    -fx-alignment: center;
-}
-
-.monthLabel {
-    -fx-font-family: 'Helvetica', sans-serif;
-    -fx-font-weight: bold;
-    -fx-font-size: 20;
-}
-
-/* Balance Title */
-
-.balanceTitleBox {
-    -fx-alignment: bottom-center;
-}
-
-
-/* Balance Box */
-
-.balanceValue {
-   -fx-font-family: 'Helvetica', sans-serif;
-   -fx-font-size: 25;
-   -fx-font-weight: bold;
+#white {
+    -fx-text-fill: white;
 }
 
 #positive {
@@ -113,49 +87,70 @@
     -fx-text-fill: red;
 }
 
-.balanceBox {
-    -fx-padding: 10;
 
-    -fx-border-radius: 10;
+/* ========== Balance Data Card ========== */
+.balanceBox {
+    -fx-background-color: #f6f7f7;
+    -fx-background-radius: 10;
+    -fx-background-insets: 20;
+
     -fx-border-color: #e1e1e1;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
     -fx-border-width: 2;
 
-    -fx-background-radius: 10;
-    -fx-background-color: #f6f7f7;
+    -fx-padding: 10;
+    -fx-alignment: center;
 }
 
-/* = = = = = = = = = = = = = = = = = = = = = =
- Card Two - Budget Data
- = = = = = = = = = = = = = = = = = = = = = = =*/
+.balanceTitleBox {
+    -fx-alignment: bottom-center;
+}
 
-/* Budget Title Box */
+.balanceValue {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+    -fx-font-weight: bold;
+}
+
+/* ========== Month Box ========== */
+.monthBox {
+    -fx-background-color: #f8ead9;
+    -fx-background-radius: 10;
+    -fx-background-insets: 20;
+
+    -fx-border-color: #e0c9b1;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
+    -fx-border-width: 2;
+
+    -fx-padding: 10;
+    -fx-alignment: center;
+}
+
+/* ========== Budget Data Card ========== */
 .budgetTitleBox {
     -fx-padding: 30;
     -fx-alignment: center-left;
 }
 
-/* Budget Display Bar */
 .budgetDisplayBar {
     -fx-accent: red;
     -fx-padding: 20;
-
 }
 
-/* Track (background) */
 .budgetDisplayBar .track {
     -fx-background-color: green;
     -fx-background-radius: 12;
     -fx-background-insets: 0;
 }
 
-/* Filled bar (progress) */
 .budgetDisplayBar .bar {
     -fx-background-radius: 12;
     -fx-background-insets: 0;
-    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.15), 4, 0.0, 0, 2);
+    -fx-effect: dropshadow(one-pass-box, rgba(0, 0, 0, 0.15), 4, 0.0, 0, 2);
 }
 
-/* Display Labels */
 .spentBox {
     -fx-alignment: center-left;
 }
@@ -168,96 +163,49 @@
     -fx-padding: 20;
 }
 
-/* Dashboard Data Cards */
-.dataTitle {
-    -fx-font-family: 'Helvetica', sans-serif;
-    -fx-font-size: 25;
-    -fx-font-weight: bold;
-}
+/* ========== Dashboard Colored Cards ========== */
+.greenCard,
+.redCard,
+.yellowCard {
+    -fx-background-insets: 15;
+    -fx-border-insets: 15;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
 
-.dataTitleBox {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
     -fx-alignment: center;
-    -fx-padding: 10;
-}
-
-.valueLabel {
-    -fx-font-family: 'Helvetica', sans-serif;
-    -fx-font-size: 30;
-    -fx-font-weight: bold;
-}
-
-#white {
-    -fx-text-fill: white;
 }
 
 .greenCard {
-     -fx-background-insets: 15;
-     -fx-border-insets: 15;
-
-     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
-
-     -fx-border-radius: 10;
-     -fx-background-radius: 10;
-
-      -fx-alignment: center;
-
-     -fx-background-color: green;
-}
-
-.greenCard:hover {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-background-color: green;
 }
 
 .redCard {
-     -fx-background-insets: 15;
-     -fx-border-insets: 15;
-
-     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
-
-     -fx-border-radius: 10;
-     -fx-background-radius: 10;
-
-      -fx-alignment: center;
-
-     -fx-background-color: red;
-}
-
-.redCard:hover {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-background-color: red;
 }
 
 .yellowCard {
-     -fx-background-insets: 15;
-     -fx-border-insets: 15;
-
-     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
-
-     -fx-border-radius: 10;
-     -fx-background-radius: 10;
-
-      -fx-alignment: center;
-
-     -fx-background-color: #feaf00;
+    -fx-background-color: #feaf00;
 }
 
+.greenCard:hover,
+.redCard:hover,
 .yellowCard:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
 }
 
-/* Add Transaction Button */
+/* ========== Add Transaction Button ========== */
 .transactionButton {
-    -fx-border-radius: 10;
-
-    -fx-background-radius: 10;
-    -fx-background-color: #474d51;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
-
     -fx-font-family: 'Helvetica', sans-serif;
     -fx-font-size: 24;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #474d51;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
 }
 
 .transactionButton:hover {
@@ -270,51 +218,81 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
 }
 
-/* = = = = = = = = = = = = = = = = = = = = = =
- Add Transaction Styling
- = = = = = = = = = = = = = = = = = = = = = = =*/
- #transactionRoot {
-      green: #00974d;
-      red:   #f3292b;
+/* ========== Add Transaction Styling ========== */
+#transactionRoot {
+    green: #00974d;
+    red: #f3292b;
+    grey: #d4d4d4;
 
-      grey: #d4d4d4;
-     -fx-padding: 10;
- }
-
- .labelBox {
-    -fx-alignment: center;
-
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-
-    -fx-border-color: black;
-    -fx-background-color: grey;
-
-    -fx-border-insets: 10;
-    -fx-background-insets: 10;
- }
+    -fx-padding: 10;
+}
 
 .toggleButtonsBox {
-    -fx-alignment: center;
+    -fx-alignment: center-right;
 }
 
 .toggleButton {
-    -fx-font-size: 20;
+    -fx-font-size: 15;
+    -fx-text-fill: black;
 
+    -fx-background-color: grey;
     -fx-background-radius: 5;
-    -fx-border-radius: 5;
-    -fx-text-fill: white;
-
     -fx-background-insets: 10;
+
+    -fx-border-radius: 5;
     -fx-border-insets: 10;
 
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
 }
 
-#redButton {
+.toggleButton:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+#redButton:selected {
     -fx-background-color: red;
+    -fx-text-fill: white;
 }
 
-#greenButton {
+#greenButton:selected {
     -fx-background-color: green;
+    -fx-text-fill: white;
+}
+
+/* Entry Field */
+.entryField {
+    -fx-font-size: 14;
+}
+
+.fieldBox {
+    -fx-alignment: center;
+}
+
+/* Confirm/Cancel Buttons */
+.button {
+    -fx-text-fill: white;
+
+    -fx-font-size: 18;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+
+}
+
+.button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.button:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0), 0, 0, 0, 0);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 2, 4);
+}
+
+.confirm{
+    -fx-background-color: green;
+
+}
+
+.cancel {
+    -fx-background-color: red;
 }
 
