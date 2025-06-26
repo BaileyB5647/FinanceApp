@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.util.Date;
 
 public class Transaction {
-    private final Category category;
-    private final LocalDate date;
-    private final String description;
-    private final Double amount;
-    private final Boolean isExpense;
+    private Category category;
+    private LocalDate date;
+    private String description;
+    private Double amount;
+    private Boolean isExpense;
 
     public Transaction(Category category, LocalDate date, String description,
                        Double amount, Boolean isExpense){
@@ -20,6 +20,29 @@ public class Transaction {
         this.isExpense = isExpense;
 
     }
+
+    public void setExpense(Boolean expense) {
+        isExpense = expense;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public void setCategory(Category category){
+        this.category = category;
+    }
+
+
+
 
     public Category getCategory() {
         return category;
@@ -40,4 +63,8 @@ public class Transaction {
     public Boolean isExpense() {
         return isExpense;
     }
+
+
+
+
 }

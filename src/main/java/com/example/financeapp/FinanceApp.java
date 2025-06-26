@@ -31,7 +31,7 @@ public class FinanceApp extends Application {
 
         Tab dashboard = appController.getDashboardTab();
         Tab forecast = AppController.getForecastTab();
-        Tab transactions = AppController.getTransactionsTab();
+        Tab transactions = appController.getTransactionsTab();
 
 
         root.getTabs().addAll(dashboard, forecast, transactions);

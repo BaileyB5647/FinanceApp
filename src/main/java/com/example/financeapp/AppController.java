@@ -1,31 +1,26 @@
 package com.example.financeapp;
 
+import javafx.beans.binding.StringBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.StackedBarChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import javax.swing.text.NumberFormatter;
-import java.sql.Date;
-import java.text.Format;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Locale;
-import java.util.Objects;
+import java.time.Month;
+import java.util.*;
 
 public class AppController {
     //Available Screen Space
@@ -35,7 +30,7 @@ public class AppController {
     Transaction t1 = new Transaction(Category.Groceries, LocalDate.now(),
             "Test", 102.00, true);
 
-    ArrayList<Transaction> transactions = new ArrayList<>();
+    ObservableList<Transaction> transactions = FXCollections.observableArrayList();
 
 
     public Tab getDashboardTab(){
@@ -92,16 +87,41 @@ public class AppController {
 
         // Balance Value
 
-        Label balanceValue = new Label(NumberFormat.getCurrencyInstance(Locale.UK).format(getBalance(transactions)));
-        balanceValue.getStyleClass().add("balanceValue");
+        StringBinding balanceStringBinding = new StringBinding() {
+            {
+                // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                double newBalance = getBalance(transactions); // <- Your method
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(newBalance);
+            }
+        };
+
+        Label balanceLabel = new Label();
+        balanceLabel.textProperty().bind(balanceStringBinding);
+        balanceLabel.getStyleClass().add("balanceValue");
 
         if (getBalance(transactions) > 0 ){
-            balanceValue.setId("positive");
+            balanceLabel.setId("positive");
         } else {
-            balanceValue.setId("negative");
+            balanceLabel.setId("negative");
         }
 
-        HBox balanceBox = new HBox(balanceValue);
+        transactions.addListener((ListChangeListener<Transaction>) _ -> {
+            double currentBalance = getBalance(transactions);
+            if (currentBalance > 0) {
+                balanceLabel.setId("positive");
+            } else {
+                balanceLabel.setId("negative");
+            }
+        });
+
+        HBox balanceBox = new HBox(balanceLabel);
         balanceBox.getStyleClass().add("balanceBox");
 
 
@@ -247,12 +267,7 @@ public class AppController {
         // Add Transaction Button:
         Button addTransaction = new Button("Add Transaction");
 
-        addTransaction.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                newTransactionDialogue();
-            }
-        });
+        addTransaction.setOnAction(_ -> newTransactionDialogue());
 
         addTransaction.getStyleClass().add("transactionButton");
         addTransaction.setPrefSize(screenWidth/4, screenHeight/8);
@@ -341,39 +356,45 @@ public class AppController {
         Button confirm = new Button("Confirm");
         confirm.getStyleClass().addAll("button", "confirm");
 
-        confirm.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Category category = categories.getValue();
-                LocalDate date = datePicker.getValue();
-                String description = descriptionField.getText().strip();
-                Double transactionAmount = amountSpinner.getValue();
-                Boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
+        confirm.setOnAction(_ -> {
+            Category category = categories.getValue();
+            LocalDate date = datePicker.getValue();
+            String description = descriptionField.getText().strip();
+            Double transactionAmount = amountSpinner.getValue();
+            Boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
 
+            if (category == null){
+                getErrorAlert("Empty Category Field");
+
+            } else if (date.toString().isBlank()) {
+                getErrorAlert("Empty Date Field");
+
+            } else if (description.isBlank()){
+                getErrorAlert("Empty Description Field");
+
+            } else if (transactionAmount.toString().isBlank()){
+                getErrorAlert("Empty Amount Field");
+
+            } else {
                 Transaction newTransaction = new Transaction(category, date, description, transactionAmount, isExpense);
                 transactions.add(newTransaction);
-
                 dialog.close();
             }
+
         });
 
 
         Button cancel = new Button("Cancel");
         cancel.getStyleClass().addAll("button", "cancel");
 
-        cancel.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                dialog.close();
-            }
-        });
+        cancel.setOnAction(_ -> dialog.close());
 
         HBox buttonBox = new HBox(confirm, cancel);
         buttonBox.getStyleClass().add("buttonsBox");
         gridPane.add(buttonBox, 0, 5, 2, 1);
 
         // === Finalize Dialog ===
-        dialog.setOnShown(e -> dialog.centerOnScreen());
+        dialog.setOnShown(_ -> dialog.centerOnScreen());
         dialog.show();
     }
 
@@ -405,6 +426,14 @@ public class AppController {
         grid.add(inputBox, 1, rowIndex);
     }
 
+    private void getErrorAlert(String contentText){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setContentText(contentText);
+        alert.setTitle("Empty Field Error!");
+
+        alert.show();
+    }
+
     public static Tab getForecastTab(){
         Tab forecastTab = new Tab("Forecast");
         forecastTab.setClosable(false);
@@ -412,22 +441,255 @@ public class AppController {
         return forecastTab;
     }
 
-    public static Tab getTransactionsTab(){
+
+
+    public Tab getTransactionsTab() {
         Tab transactionsTab = new Tab("Transactions");
         transactionsTab.setClosable(false);
+
+        // Add Transaction Button:
+        Button addTransaction = new Button("Add Transaction");
+
+        addTransaction.setOnAction(_ -> newTransactionDialogue());
+
+        addTransaction.getStyleClass().add("transactionButton");
+        addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
+
+        HBox buttonsBox = new HBox(addTransaction);
+        buttonsBox.getStyleClass().add("buttonsBox");
+
+        // Create layout containers
+        VBox container = new VBox();
+        GridPane gridView = new GridPane();
+        gridView.getStyleClass().add("listTab");
+
+        ColumnConstraints col0 = new ColumnConstraints(screenWidth*0.65);
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth*0.35);
+
+        RowConstraints row0 = new RowConstraints(screenHeight*0.1);
+        RowConstraints row1 = new RowConstraints(screenHeight*0.8);
+        RowConstraints row2 = new RowConstraints(screenHeight*0.1);
+
+
+        gridView.getColumnConstraints().addAll(col0, col1);
+        gridView.getRowConstraints().addAll(row0, row1, row2);
+
+
+        // Header row
+        HBox header = new HBox(10);
+        header.getStyleClass().add("listHeader");
+
+        Label dateHeader = createHeaderLabel("Date", 150);
+        Label descHeader = createHeaderLabel("Description", 200);
+        Label amountHeader = createHeaderLabel("Amount", 150);
+        Label categoryHeader = createHeaderLabel("Category", 200);
+
+        header.getChildren().addAll(descHeader, amountHeader, dateHeader, categoryHeader);
+
+        // ListView setup
+        ListView<Transaction> transactionListView = new ListView<>();
+        transactionListView.getStyleClass().add("listView");
+        transactionListView.setItems(transactions);
+
+        transactionListView.setCellFactory(_ -> new ListCell<>() {
+            @Override
+            protected void updateItem(Transaction transaction, boolean empty) {
+                super.updateItem(transaction, empty);
+                if (empty || transaction == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
+                            .format(transaction.getAmount());
+
+                    Label nameLabel = new Label(transaction.getDescription());
+                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
+
+                    if (transaction.isExpense()){
+                        amountLabel.getStyleClass().add("expense");
+                    }
+
+                    Label dateLabel = new Label(transaction.getDate().toString());
+                    Label categoryLabel = new Label(transaction.getCategory().toString());
+
+                    nameLabel.setPrefWidth(200);
+                    amountLabel.setPrefWidth(150);
+                    dateLabel.setPrefWidth(150);
+                    categoryLabel.setPrefWidth(200);
+
+                    HBox row = new HBox(10, nameLabel, amountLabel, dateLabel, categoryLabel);
+                    setGraphic(row);
+                }
+            }
+        });
+
+        transactionListView.getSelectionModel().selectedItemProperty().addListener((_, _, newSelection) -> {
+            if (newSelection != null) {
+                VBox transactionEditor = getTransactionEditor(newSelection, transactionListView);
+
+                gridView.add(transactionEditor, 1, 0, 1, 2);
+            }
+        });
+
+        // Assemble the UI
+        container.getChildren().addAll(header, transactionListView);
+
+
+
+        gridView.add(header, 0, 0);
+        gridView.add(transactionListView, 0, 1);
+        gridView.add(buttonsBox, 0, 2);
+
+        transactionsTab.setContent(gridView);
 
         return transactionsTab;
     }
 
+    private VBox getTransactionEditor(Transaction transaction, ListView listView) {
+        GridPane gridPane = new GridPane();
+        gridPane.setId("transactionRoot");
 
-    public double getBalance(ArrayList<Transaction> transactions){
+        for (int i = 0; i < 6; i++) {
+            gridPane.getRowConstraints().add(new RowConstraints(screenHeight*(0.9/6)));
+        }
+        gridPane.getColumnConstraints().addAll(
+                new ColumnConstraints(screenWidth * 0.15),
+                new ColumnConstraints(screenWidth * 0.15)
+        );
+
+        // === Transaction Type Toggle ===
+        Label typeLabel = new Label("Transaction Type:");
+        typeLabel.getStyleClass().add("standardLabel");
+
+        HBox typeLabelBox = new HBox(typeLabel);
+        typeLabelBox.getStyleClass().add("labelBox");
+
+        ToggleButton expenseButton = createToggleButton("Expense", "redButton");
+        ToggleButton incomeButton = createToggleButton("Income", "greenButton");
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(expenseButton, incomeButton);
+
+        if (transaction.isExpense()) {
+            toggleGroup.selectToggle(expenseButton);
+        } else {
+            toggleGroup.selectToggle(incomeButton);
+        }
+
+        // Prevent deselection
+        for (Toggle toggle : toggleGroup.getToggles()) {
+            ((ToggleButton) toggle).addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                ToggleButton btn = (ToggleButton) event.getSource();
+                if (btn.isSelected()) event.consume();
+            });
+        }
+
+        HBox toggleButtonsBox = new HBox(expenseButton, incomeButton);
+        toggleButtonsBox.getStyleClass().add("toggleButtonsBox");
+
+        // === Form Fields ===
+        DatePicker datePicker = new DatePicker(transaction.getDate());
+
+
+        TextField descriptionField = new TextField(transaction.getDescription());
+
+        ChoiceBox<Category> categories = new ChoiceBox<>();
+        categories.setValue(transaction.getCategory());
+        categories.getItems().addAll(Category.values());
+        categories.setPrefWidth(screenWidth / 5);
+        categories.getStyleClass().add("fieldBox");
+
+        Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
+        amountSpinner.setEditable(true);
+
+        // === Submit Button ===
+        Button confirm = new Button("Confirm");
+        confirm.getStyleClass().addAll("button", "confirm");
+
+        confirm.setOnAction(_ -> {
+            transaction.setCategory(categories.getValue());
+            transaction.setDate(datePicker.getValue());
+            transaction.setDescription(descriptionField.getText().strip());
+            transaction.setAmount(amountSpinner.getValue());
+            transaction.setExpense(toggleGroup.getSelectedToggle() == expenseButton);
+
+            Transaction temp = new Transaction(Category.Groceries, LocalDate.now(), "TEMP", 0.0, false);
+            listView.refresh();
+            transactions.addLast(temp);
+            transactions.removeLast();
+        });
+
+        // === Delete Button ===
+        Button deleteButton = new Button("Delete Transaction");
+        deleteButton.getStyleClass().addAll("button", "cancel");
+        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Alert warningAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                warningAlert.setTitle("Delete Transaction?");
+                warningAlert.setContentText("Do you want to delete this transaction?");
+
+                ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+
+                warningAlert.getButtonTypes().setAll(yesButton, noButton);
+                Optional<ButtonType> result = warningAlert.showAndWait();
+
+                if (result.isPresent() && result.get() == yesButton) {
+                    // User clicked Yes
+                    transactions.remove(transaction);
+
+                    gridPane.getChildren().clear();
+                } else {
+                    // User clicked No or closed the dialog
+                    System.out.println("Deletion cancelled.");
+                }
+
+
+
+
+
+            }
+        });
+
+
+        HBox buttonBox = new HBox(confirm, deleteButton);
+        buttonBox.getStyleClass().add("buttonsBox");
+
+        // === Layout Grid ===
+        addLabeledField(gridPane, "Transaction Type:", toggleButtonsBox, 0);
+        addLabeledField(gridPane, "Date:", datePicker, 1);
+        addLabeledField(gridPane, "Description:", descriptionField, 2);
+        addLabeledField(gridPane, "Category:", categories, 3);
+        addLabeledField(gridPane, "Amount:", amountSpinner, 4);
+
+        gridPane.add(buttonBox, 0, 5, 2, 1);
+
+        // === Wrap gridPane in a Card ===
+        VBox card = new VBox(gridPane);
+        card.getStyleClass().add("card");
+        card.setId("transactionEditor");
+
+        return card;
+    }
+
+    // Helper method to reduce duplication
+    private Label createHeaderLabel(String text, double width) {
+        Label label = new Label(text);
+        label.setMinWidth(width);
+        return label;
+    }
+
+    public double getBalance(ObservableList<Transaction> transactions){
         double runningBalance = 0;
 
         for (Transaction transaction : transactions){
-            if (transaction.isExpense()) {
-                runningBalance -= transaction.getAmount();
-            } else {
-                runningBalance += transaction.getAmount();
+            if (transaction.getDate().isBefore(LocalDate.now()) || transaction.getDate().isEqual(LocalDate.now())){
+                if (transaction.isExpense()) {
+                    runningBalance -= transaction.getAmount();
+                } else {
+                    runningBalance += transaction.getAmount();
+                }
             }
         }
 

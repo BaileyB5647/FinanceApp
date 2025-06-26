@@ -9,6 +9,7 @@
 
 /* ========== General Card Style ========== */
 .card {
+    -fx-padding: 10;
     -fx-background-insets: 5;
     -fx-border-insets: 5;
     -fx-border-radius: 10;
@@ -20,6 +21,8 @@
 
 .card:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-translate-y: -10;
+
 }
 
 /* ========== Typography ========== */
@@ -192,6 +195,7 @@
 .redCard:hover,
 .yellowCard:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-translate-y: -10;
 }
 
 /* ========== Add Transaction Button ========== */
@@ -294,5 +298,47 @@
 
 .cancel {
     -fx-background-color: red;
+}
+
+/* ========== List View Styling ========== */
+.listTab {
+    green: #00974d;
+    red: #f3292b;
+
+    -fx-padding: 30;
+}
+
+.listView {
+
+}
+
+.listView .cell{
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+
+}
+
+.listView .cell .expense {
+    -fx-text-fill: red;
+}
+
+.listHeader{
+
+    -fx-padding: 10;
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+
+}
+
+#transactionEditor {
+    -fx-margin: 10;
+    -fx-translate-x: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 10, 4);
+}
+
+#transactionEditor:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 10, 4);
+    -fx-translate-y: 0;
 }
 
