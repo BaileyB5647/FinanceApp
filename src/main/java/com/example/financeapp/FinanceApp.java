@@ -6,6 +6,8 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -26,7 +28,11 @@ public class FinanceApp extends Application {
         TransactionsDatabase.init();
         appController.initialiseApp();
 
-        TabPane root = new TabPane();
+        TabPane tabPane = new TabPane();
+        BorderPane root = new BorderPane();
+        root.setCenter(tabPane);
+        root.setTop(appController.getMenuBar());
+
         Scene scene = new Scene(root);
 
         root.setPrefWidth(screenWidth);
@@ -35,6 +41,7 @@ public class FinanceApp extends Application {
         Tab dashboard = appController.getDashboardTab();
         Tab forecast = appController.getForecastTab();
         Tab transactions = appController.getTransactionsTab();
+        Tab accounts = appController.getAccountsTab();
 
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -43,7 +50,7 @@ public class FinanceApp extends Application {
             }
         });
 
-        root.getTabs().addAll(dashboard, forecast, transactions);
+        tabPane.getTabs().addAll(dashboard, forecast, transactions, accounts);
 
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
 

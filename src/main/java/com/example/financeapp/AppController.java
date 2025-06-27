@@ -5,6 +5,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
@@ -26,6 +28,28 @@ public class AppController {
     private final double screenHeight = Screen.getPrimary().getBounds().getHeight() - 240;
 
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
+
+    public MenuBar getMenuBar(){
+        MenuBar menuBar = new MenuBar();
+        final String os = System.getProperty("os.name");
+        if (os != null && os.startsWith("Mac"))
+            menuBar.useSystemMenuBarProperty().set(true);
+
+        Menu settingsMenu = new Menu("Settings");
+        MenuItem appearance = new MenuItem("Appearance");
+        appearance.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                MenuBarController.getAppearanceEditor();
+            }
+        });
+
+        settingsMenu.getItems().addAll(appearance);
+
+        menuBar.getMenus().addAll(settingsMenu);
+
+        return menuBar;
+    }
 
     public void initialiseApp(){
         transactions.addAll(TransactionsDatabase.loadTransactions());
@@ -333,7 +357,6 @@ public class AppController {
             if (getNetCashflow(transactions) >= 0) {
                 netCashflowValueBox.getStyleClass().add("greenCard");
             } else {
-                System.out.println("2");
                 netCashflowValueBox.getStyleClass().add("redCard");
             }
         });
@@ -545,6 +568,14 @@ public class AppController {
 
         forecastTab.setContent(chart);
         return forecastTab;
+    }
+
+    public Tab getAccountsTab(){
+        Tab accountsTab = new Tab("Accounts");
+        accountsTab.setClosable(false);
+
+
+        return accountsTab;
     }
 
     public void newTransactionDialogue() {
@@ -843,7 +874,5 @@ public class AppController {
 
         return runningBalance;
     }
-
-
 
 }

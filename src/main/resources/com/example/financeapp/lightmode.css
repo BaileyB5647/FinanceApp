@@ -7,6 +7,43 @@
     -fx-padding: 50;
 }
 
+/* ========== TabPane Styling ========== */
+
+.tab-header-background {
+    -fx-background-color: null;
+}
+
+.tab-header-area {
+    -fx-spacing: 50;
+}
+
+.tab {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+
+    -fx-padding: 0 20 0 20;  /* top, right, bottom, left padding */
+
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+
+    -fx-background-color: transparent;
+
+    -fx-cursor: hand;
+}
+
+.tab:selected {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: #a5d8ff;
+}
+
+.tab:hover{
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+
+
 /* ========== General Card Style ========== */
 .card {
     -fx-padding: 10;
@@ -77,6 +114,7 @@
     -fx-padding: 10;
     -fx-spacing: 10;
     -fx-alignment: center;
+
 }
 
 #white {
@@ -212,6 +250,8 @@
     -fx-background-color: #474d51;
 
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-cursor: hand;
+
 }
 
 .transactionButton:hover {
@@ -249,6 +289,8 @@
     -fx-border-insets: 10;
 
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-cursor: hand;
+
 }
 
 .toggleButton:hover {
@@ -258,11 +300,14 @@
 #redButton:selected {
     -fx-background-color: red;
     -fx-text-fill: white;
+
+
 }
 
 #greenButton:selected {
     -fx-background-color: green;
     -fx-text-fill: white;
+
 }
 
 /* Entry Field */
@@ -282,6 +327,9 @@
 
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
 
+    -fx-cursor: hand;
+
+
 }
 
 .button:hover {
@@ -295,11 +343,15 @@
 
 .confirm{
     -fx-background-color: green;
+    -fx-cursor: hand;
+
 
 }
 
 .cancel {
     -fx-background-color: red;
+    -fx-cursor: hand;
+
 }
 
 /* ========== List View Styling ========== */
@@ -311,17 +363,29 @@
 }
 
 .listView {
-
+    -fx-border-color: black;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
+
+
 
 .listView .cell{
     -fx-font-family: 'Helvetica', sans-serif;
     -fx-font-size: 18;
 
+    -fx-cursor: hand;
+
+
 }
 
 .listView .cell .expense {
     -fx-text-fill: red;
+}
+
+.listView .cell:selected{
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .listHeader{
