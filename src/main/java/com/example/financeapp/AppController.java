@@ -25,18 +25,16 @@ public class AppController {
     private final double screenWidth = Screen.getPrimary().getBounds().getWidth() - 100;
     private final double screenHeight = Screen.getPrimary().getBounds().getHeight() - 240;
 
-    Transaction t1 = new Transaction(Category.Groceries, LocalDate.now(),
-            "Test", 102.00, true);
-
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
 
+    public void initialiseApp(){
+        transactions.addAll(TransactionsDatabase.loadTransactions());
+    }
 
     public Tab getDashboardTab(){
-        transactions.add(t1);
         // Dashboard Tab Setup
         Tab dashboard = new Tab("Dashboard");
         dashboard.setClosable(false);
-
 
         // Grid Pane Setup
         GridPane gridPane = new GridPane();
@@ -494,7 +492,6 @@ public class AppController {
         container.getChildren().addAll(header, transactionListView);
 
 
-
         gridView.add(header, 0, 0);
         gridView.add(transactionListView, 0, 1);
         gridView.add(buttonsBox, 0, 2);
@@ -646,6 +643,7 @@ public class AppController {
             } else {
                 Transaction newTransaction = new Transaction(category, date, description, transactionAmount, isExpense);
                 transactions.add(newTransaction);
+                TransactionsDatabase.addTransaction(newTransaction);
                 dialog.close();
             }
 
@@ -667,8 +665,6 @@ public class AppController {
     }
 
 // === Helpers ===
-
-
 
     private ToggleButton createToggleButton(String text, String id) {
         ToggleButton button = new ToggleButton(text);
@@ -776,6 +772,9 @@ public class AppController {
             listView.refresh();
             transactions.addLast(temp);
             transactions.removeLast();
+
+            TransactionsDatabase.updateDatabase(transactions);
+
         });
 
         // === Delete Button ===
@@ -796,13 +795,10 @@ public class AppController {
                 // User clicked Yes
                 transactions.remove(transaction);
 
+                TransactionsDatabase.updateDatabase(transactions);
+
                 gridPane.getChildren().clear();
             }
-
-
-
-
-
         });
 
 
@@ -847,6 +843,7 @@ public class AppController {
 
         return runningBalance;
     }
+
 
 
 }
