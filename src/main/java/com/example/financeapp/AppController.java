@@ -4,11 +4,10 @@ import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -19,7 +18,6 @@ import javafx.stage.Stage;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.*;
 
 public class AppController {
@@ -193,12 +191,29 @@ public class AppController {
 
         Label incomeLabel = new Label("Income");
         incomeLabel.getStyleClass().add("dataTitle");
+
         HBox incomeLabelBox = new HBox(incomeLabel);
         incomeLabelBox.getStyleClass().add("dataTitleBox");
 
         gridPane.add(incomeLabelBox, 0, 4, 2, 1);
 
-        Label incomeValue = new Label("£500.00");
+        StringBinding incomeStringBinding = new StringBinding() {
+            {
+                // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double getIncome = getIncome(transactions);
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(getIncome);
+            }
+        };
+
+        Label incomeValue = new Label();
+        incomeValue.textProperty().bind(incomeStringBinding);
         incomeValue.getStyleClass().add("valueLabel");
         incomeValue.setId("white");
 
@@ -217,7 +232,23 @@ public class AppController {
 
         gridPane.add(expensesLabelBox, 2, 4, 2, 1);
 
-        Label expensesValue = new Label("£460.00");
+        StringBinding expensesStringBinding = new StringBinding() {
+            {
+                // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double expenses = getExpenses(transactions);
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(expenses);
+            }
+        };
+
+        Label expensesValue = new Label();
+        expensesValue.textProperty().bind(expensesStringBinding);
         expensesValue.getStyleClass().add("valueLabel");
         expensesValue.setId("white");
 
@@ -236,7 +267,23 @@ public class AppController {
 
         gridPane.add(plannedExpensesLabelBox, 4, 4, 2, 1);
 
-        Label plannedExpensesValue = new Label("£500.00");
+        StringBinding plannedExpensesStringBinding = new StringBinding() {
+            {
+                // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double expenses = getPlannedExpenses(transactions);
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(expenses);
+            }
+        };
+
+        Label plannedExpensesValue = new Label();
+        plannedExpensesValue.textProperty().bind(plannedExpensesStringBinding);
         plannedExpensesValue.getStyleClass().add("valueLabel");
 
         HBox plannedExpensesValueBox = new HBox(plannedExpensesValue);
@@ -255,12 +302,43 @@ public class AppController {
 
         gridPane.add(netCashflowLabelBox, 6, 4, 2, 1);
 
-        Label netCashflowValue = new Label("+£40.00");
+        StringBinding netCashflowStringBinding = new StringBinding() {
+            {
+                // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double expenses = getNetCashflow(transactions);
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(expenses);
+            }
+        };
+
+        Label netCashflowValue = new Label();
+        netCashflowValue.textProperty().bind(netCashflowStringBinding);
         netCashflowValue.getStyleClass().add("valueLabel");
         netCashflowValue.setId("white");
 
         HBox netCashflowValueBox = new HBox(netCashflowValue);
-        netCashflowValueBox.getStyleClass().add("greenCard");
+
+        if (getNetCashflow(transactions) >= 0) {
+            netCashflowValueBox.getStyleClass().add("greenCard");
+        } else {
+            netCashflowValueBox.getStyleClass().add("redCard");
+        }
+
+        netCashflowStringBinding.addListener((_) -> {
+            netCashflowValueBox.getStyleClass().clear();
+            if (getNetCashflow(transactions) >= 0) {
+                netCashflowValueBox.getStyleClass().add("greenCard");
+            } else {
+                System.out.println("2");
+                netCashflowValueBox.getStyleClass().add("redCard");
+            }
+        });
 
         gridPane.add(netCashflowValueBox, 6, 5, 2, 2);
 
@@ -280,6 +358,196 @@ public class AppController {
         dashboard.setContent(gridPane);
 
         return dashboard;
+    }
+
+    private Double getIncome(ObservableList<Transaction> transactions) {
+        Double monthlyIncome = 0.0;
+
+        for (Transaction transaction : transactions){
+            if (!transaction.isExpense() && transaction.getDate().getMonth().equals(LocalDate.now().getMonth())) {
+                monthlyIncome += transaction.getAmount();
+            }
+        }
+
+        return monthlyIncome;
+    }
+
+    private Double getExpenses(ObservableList<Transaction> transactions){
+        Double monthlyExpenses = 0.0;
+
+        for (Transaction transaction : transactions){
+            if (transaction.isExpense() && transaction.getDate().getMonth().equals(LocalDate.now().getMonth())
+                && (transaction.getDate().isBefore(LocalDate.now()) || transaction.getDate().isEqual(LocalDate.now()))) {
+                monthlyExpenses += transaction.getAmount();
+            }
+        }
+
+        return monthlyExpenses;
+    }
+
+    private Double getPlannedExpenses(ObservableList<Transaction> transactions){
+        Double monthlyPlannedExpenses = 0.0;
+
+        for (Transaction transaction : transactions){
+            if (transaction.isExpense() && transaction.getDate().getMonth().equals(LocalDate.now().getMonth())
+                    && transaction.getDate().isAfter(LocalDate.now())) {
+                monthlyPlannedExpenses += transaction.getAmount();
+            }
+        }
+
+        return monthlyPlannedExpenses;
+    }
+
+    private Double getNetCashflow(ObservableList<Transaction> transactions){
+        return getIncome(transactions) - (getExpenses(transactions) + getPlannedExpenses(transactions));
+    }
+
+    public Tab getTransactionsTab() {
+        Tab transactionsTab = new Tab("Transactions");
+        transactionsTab.setClosable(false);
+
+        // Add Transaction Button:
+        Button addTransaction = new Button("Add Transaction");
+
+        addTransaction.setOnAction(_ -> newTransactionDialogue());
+
+        addTransaction.getStyleClass().add("transactionButton");
+        addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
+
+        HBox buttonsBox = new HBox(addTransaction);
+        buttonsBox.getStyleClass().add("buttonsBox");
+
+        // Create layout containers
+        VBox container = new VBox();
+        GridPane gridView = new GridPane();
+        gridView.getStyleClass().add("listTab");
+
+        ColumnConstraints col0 = new ColumnConstraints(screenWidth*0.65);
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth*0.35);
+
+        RowConstraints row0 = new RowConstraints(screenHeight*0.1);
+        RowConstraints row1 = new RowConstraints(screenHeight*0.8);
+        RowConstraints row2 = new RowConstraints(screenHeight*0.1);
+
+
+        gridView.getColumnConstraints().addAll(col0, col1);
+        gridView.getRowConstraints().addAll(row0, row1, row2);
+
+
+        // Header row
+        HBox header = new HBox(10);
+        header.getStyleClass().add("listHeader");
+
+        Label dateHeader = createHeaderLabel("Date", 150);
+        Label descHeader = createHeaderLabel("Description", 200);
+        Label amountHeader = createHeaderLabel("Amount", 150);
+        Label categoryHeader = createHeaderLabel("Category", 200);
+
+        header.getChildren().addAll(dateHeader, descHeader, amountHeader,  categoryHeader);
+
+        // ListView setup
+        ListView<Transaction> transactionListView = new ListView<>();
+        transactionListView.getStyleClass().add("listView");
+        transactionListView.setItems(transactions);
+
+        transactionListView.setCellFactory(_ -> new ListCell<>() {
+            @Override
+            protected void updateItem(Transaction transaction, boolean empty) {
+                super.updateItem(transaction, empty);
+                if (empty || transaction == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
+                            .format(transaction.getAmount());
+
+                    Label nameLabel = new Label(transaction.getDescription());
+                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
+
+                    if (transaction.isExpense()){
+                        amountLabel.getStyleClass().add("expense");
+                    }
+
+                    Label dateLabel = new Label(transaction.getDate().toString());
+                    Label categoryLabel = new Label(transaction.getCategory().toString());
+
+                    nameLabel.setPrefWidth(200);
+                    amountLabel.setPrefWidth(150);
+                    dateLabel.setPrefWidth(150);
+                    categoryLabel.setPrefWidth(200);
+
+                    HBox row = new HBox(10, dateLabel, nameLabel, amountLabel, categoryLabel);
+                    setGraphic(row);
+                }
+            }
+        });
+
+        transactionListView.getSelectionModel().selectedItemProperty().addListener((_, _, newSelection) -> {
+            if (newSelection != null) {
+                VBox transactionEditor = getTransactionEditor(newSelection, transactionListView);
+
+                gridView.add(transactionEditor, 1, 0, 1, 2);
+            }
+        });
+
+        // Assemble the UI
+        container.getChildren().addAll(header, transactionListView);
+
+
+
+        gridView.add(header, 0, 0);
+        gridView.add(transactionListView, 0, 1);
+        gridView.add(buttonsBox, 0, 2);
+
+        transactionsTab.setContent(gridView);
+
+        return transactionsTab;
+    }
+
+    public Tab getForecastTab() {
+        Tab forecastTab = new Tab("Forecast");
+        forecastTab.setClosable(false);
+
+        // Define axes
+        final CategoryAxis xAxis = new CategoryAxis(); // JavaFX doesn't support LocalDate directly here
+        final NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("Date");
+        yAxis.setLabel("Amount");
+
+        // Convert LocalDate to String for CategoryAxis
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Transactions");
+
+
+
+        SortedList<Transaction> sortedList = transactions.sorted(Comparator.comparing(Transaction::getDate));
+
+        for (Transaction transaction : sortedList) {
+            String dateStr = transaction.getDate().toString();
+            series.getData().add(new XYChart.Data<>(dateStr, transaction.getAmount()));
+        }
+
+        // Create chart
+        LineChart<String, Number> chart = new LineChart<>(new CategoryAxis(), yAxis);
+        chart.getData().add(series);
+        chart.setTitle("Transaction Forecast");
+
+
+        transactions.addListener((ListChangeListener<Transaction>) _ -> {
+            chart.getData().clear();
+            series.getData().clear();
+            SortedList<Transaction> sortedList1 = transactions.sorted(Comparator.comparing(Transaction::getDate));
+
+            for (Transaction transaction : sortedList1) {
+                String dateStr = transaction.getDate().toString();
+                series.getData().add(new XYChart.Data<>(dateStr, transaction.getAmount()));
+
+            }
+            chart.getData().add(series);
+        });
+
+        forecastTab.setContent(chart);
+        return forecastTab;
     }
 
     public void newTransactionDialogue() {
@@ -400,6 +668,8 @@ public class AppController {
 
 // === Helpers ===
 
+
+
     private ToggleButton createToggleButton(String text, String id) {
         ToggleButton button = new ToggleButton(text);
         button.setPrefSize(screenWidth / 10, screenHeight / 10);
@@ -434,118 +704,7 @@ public class AppController {
         alert.show();
     }
 
-    public static Tab getForecastTab(){
-        Tab forecastTab = new Tab("Forecast");
-        forecastTab.setClosable(false);
-
-        return forecastTab;
-    }
-
-
-
-    public Tab getTransactionsTab() {
-        Tab transactionsTab = new Tab("Transactions");
-        transactionsTab.setClosable(false);
-
-        // Add Transaction Button:
-        Button addTransaction = new Button("Add Transaction");
-
-        addTransaction.setOnAction(_ -> newTransactionDialogue());
-
-        addTransaction.getStyleClass().add("transactionButton");
-        addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
-
-        HBox buttonsBox = new HBox(addTransaction);
-        buttonsBox.getStyleClass().add("buttonsBox");
-
-        // Create layout containers
-        VBox container = new VBox();
-        GridPane gridView = new GridPane();
-        gridView.getStyleClass().add("listTab");
-
-        ColumnConstraints col0 = new ColumnConstraints(screenWidth*0.65);
-        ColumnConstraints col1 = new ColumnConstraints(screenWidth*0.35);
-
-        RowConstraints row0 = new RowConstraints(screenHeight*0.1);
-        RowConstraints row1 = new RowConstraints(screenHeight*0.8);
-        RowConstraints row2 = new RowConstraints(screenHeight*0.1);
-
-
-        gridView.getColumnConstraints().addAll(col0, col1);
-        gridView.getRowConstraints().addAll(row0, row1, row2);
-
-
-        // Header row
-        HBox header = new HBox(10);
-        header.getStyleClass().add("listHeader");
-
-        Label dateHeader = createHeaderLabel("Date", 150);
-        Label descHeader = createHeaderLabel("Description", 200);
-        Label amountHeader = createHeaderLabel("Amount", 150);
-        Label categoryHeader = createHeaderLabel("Category", 200);
-
-        header.getChildren().addAll(descHeader, amountHeader, dateHeader, categoryHeader);
-
-        // ListView setup
-        ListView<Transaction> transactionListView = new ListView<>();
-        transactionListView.getStyleClass().add("listView");
-        transactionListView.setItems(transactions);
-
-        transactionListView.setCellFactory(_ -> new ListCell<>() {
-            @Override
-            protected void updateItem(Transaction transaction, boolean empty) {
-                super.updateItem(transaction, empty);
-                if (empty || transaction == null) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
-                            .format(transaction.getAmount());
-
-                    Label nameLabel = new Label(transaction.getDescription());
-                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
-
-                    if (transaction.isExpense()){
-                        amountLabel.getStyleClass().add("expense");
-                    }
-
-                    Label dateLabel = new Label(transaction.getDate().toString());
-                    Label categoryLabel = new Label(transaction.getCategory().toString());
-
-                    nameLabel.setPrefWidth(200);
-                    amountLabel.setPrefWidth(150);
-                    dateLabel.setPrefWidth(150);
-                    categoryLabel.setPrefWidth(200);
-
-                    HBox row = new HBox(10, nameLabel, amountLabel, dateLabel, categoryLabel);
-                    setGraphic(row);
-                }
-            }
-        });
-
-        transactionListView.getSelectionModel().selectedItemProperty().addListener((_, _, newSelection) -> {
-            if (newSelection != null) {
-                VBox transactionEditor = getTransactionEditor(newSelection, transactionListView);
-
-                gridView.add(transactionEditor, 1, 0, 1, 2);
-            }
-        });
-
-        // Assemble the UI
-        container.getChildren().addAll(header, transactionListView);
-
-
-
-        gridView.add(header, 0, 0);
-        gridView.add(transactionListView, 0, 1);
-        gridView.add(buttonsBox, 0, 2);
-
-        transactionsTab.setContent(gridView);
-
-        return transactionsTab;
-    }
-
-    private VBox getTransactionEditor(Transaction transaction, ListView listView) {
+    private VBox getTransactionEditor(Transaction transaction, ListView<Transaction> listView) {
         GridPane gridPane = new GridPane();
         gridPane.setId("transactionRoot");
 
@@ -622,34 +781,28 @@ public class AppController {
         // === Delete Button ===
         Button deleteButton = new Button("Delete Transaction");
         deleteButton.getStyleClass().addAll("button", "cancel");
-        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Alert warningAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                warningAlert.setTitle("Delete Transaction?");
-                warningAlert.setContentText("Do you want to delete this transaction?");
+        deleteButton.setOnAction(_ -> {
+            Alert warningAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            warningAlert.setTitle("Delete Transaction?");
+            warningAlert.setContentText("Do you want to delete this transaction?");
 
-                ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+            ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+            ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
 
-                warningAlert.getButtonTypes().setAll(yesButton, noButton);
-                Optional<ButtonType> result = warningAlert.showAndWait();
+            warningAlert.getButtonTypes().setAll(yesButton, noButton);
+            Optional<ButtonType> result = warningAlert.showAndWait();
 
-                if (result.isPresent() && result.get() == yesButton) {
-                    // User clicked Yes
-                    transactions.remove(transaction);
+            if (result.isPresent() && result.get() == yesButton) {
+                // User clicked Yes
+                transactions.remove(transaction);
 
-                    gridPane.getChildren().clear();
-                } else {
-                    // User clicked No or closed the dialog
-                    System.out.println("Deletion cancelled.");
-                }
-
-
-
-
-
+                gridPane.getChildren().clear();
             }
+
+
+
+
+
         });
 
 
@@ -673,7 +826,6 @@ public class AppController {
         return card;
     }
 
-    // Helper method to reduce duplication
     private Label createHeaderLabel(String text, double width) {
         Label label = new Label(text);
         label.setMinWidth(width);
@@ -695,5 +847,6 @@ public class AppController {
 
         return runningBalance;
     }
+
 
 }

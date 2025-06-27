@@ -30,7 +30,7 @@ public class FinanceApp extends Application {
         root.setPrefHeight(screenHeight);
 
         Tab dashboard = appController.getDashboardTab();
-        Tab forecast = AppController.getForecastTab();
+        Tab forecast = appController.getForecastTab();
         Tab transactions = appController.getTransactionsTab();
 
 

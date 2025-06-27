@@ -21,7 +21,8 @@
 
 .card:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
-    -fx-translate-y: -10;
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
 
 }
 
@@ -195,7 +196,8 @@
 .redCard:hover,
 .yellowCard:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
-    -fx-translate-y: -10;
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
 }
 
 /* ========== Add Transaction Button ========== */
@@ -339,6 +341,7 @@
 
 #transactionEditor:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 10, 4);
-    -fx-translate-y: 0;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
 }
 
