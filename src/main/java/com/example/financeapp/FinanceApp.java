@@ -41,6 +41,7 @@ public class FinanceApp extends Application {
         Tab dashboard = appController.getDashboardTab();
         Tab forecast = appController.getForecastTab();
         Tab transactions = appController.getTransactionsTab();
+        Tab recurringTransactions = appController.getRecurringTransactionsTab();
         Tab accounts = appController.getAccountsTab();
 
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -50,7 +51,7 @@ public class FinanceApp extends Application {
             }
         });
 
-        tabPane.getTabs().addAll(dashboard, forecast, transactions, accounts);
+        tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions, accounts);
 
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
 

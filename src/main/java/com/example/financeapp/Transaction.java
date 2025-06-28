@@ -1,17 +1,16 @@
 package com.example.financeapp;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 public class Transaction {
     private Category category;
     private LocalDate date;
     private String description;
     private Double amount;
-    private Boolean isExpense;
+    private boolean isExpense;
 
     public Transaction(Category category, LocalDate date, String description,
-                       Double amount, Boolean isExpense){
+                       Double amount, boolean isExpense){
 
         this.category = category;
         this.date = date;
@@ -21,7 +20,7 @@ public class Transaction {
 
     }
 
-    public void setExpense(Boolean expense) {
+    public void setExpense(boolean expense) {
         isExpense = expense;
     }
 
@@ -42,8 +41,6 @@ public class Transaction {
     }
 
 
-
-
     public Category getCategory() {
         return category;
     }
@@ -60,7 +57,7 @@ public class Transaction {
         return amount;
     }
 
-    public Boolean isExpense() {
+    public boolean isExpense() {
         return isExpense;
     }
 

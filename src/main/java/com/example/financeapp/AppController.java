@@ -28,6 +28,9 @@ public class AppController {
     private final double screenHeight = Screen.getPrimary().getBounds().getHeight() - 240;
 
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
+    ObservableList<RecurringTransaction> recurringTransactions = FXCollections.observableArrayList();
+    RecurringTransaction test = new RecurringTransaction(14.00, "Test", Category.Groceries, LocalDate.now(), LocalDate.of(2026, 6, 29), Frequency.Monthly, false);
+
 
     public MenuBar getMenuBar(){
         MenuBar menuBar = new MenuBar();
@@ -63,6 +66,12 @@ public class AppController {
         // Grid Pane Setup
         GridPane gridPane = new GridPane();
         gridPane.setId("root");
+
+        gridPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        GridPane.setHgrow(gridPane, Priority.ALWAYS);
+        GridPane.setVgrow(gridPane, Priority.ALWAYS);
+
+
 
         ColumnConstraints col0 = new ColumnConstraints(screenWidth/8);
         ColumnConstraints col1 = new ColumnConstraints(screenWidth/8);
@@ -503,10 +512,15 @@ public class AppController {
             }
         });
 
-        transactionListView.getSelectionModel().selectedItemProperty().addListener((_, _, newSelection) -> {
-            if (newSelection != null) {
-                VBox transactionEditor = getTransactionEditor(newSelection, transactionListView);
+        VBox transactionEditor = new VBox();
 
+        transactionListView.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                if (oldSelection != null){
+                    gridView.getChildren().remove(transactionEditor);
+                }
+
+                transactionEditor.getChildren().setAll(getTransactionEditor(newSelection, transactionListView));
                 gridView.add(transactionEditor, 1, 0, 1, 2);
             }
         });
@@ -575,7 +589,129 @@ public class AppController {
         accountsTab.setClosable(false);
 
 
+
         return accountsTab;
+    }
+
+    public Tab getRecurringTransactionsTab(){
+        Tab recurringTransactionsTab = new Tab("Recurring Transactions");
+        recurringTransactionsTab.setClosable(false);
+
+        //test data:
+        recurringTransactions.add(test);
+
+        // Add Transaction Button:
+        Button addTransaction = new Button("Add Recurring Transaction");
+        addTransaction.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                newRecurringTransactionDialogue();
+            }
+        });
+
+        addTransaction.getStyleClass().add("transactionButton");
+        addTransaction.setPrefSize(screenWidth/4, screenHeight/12);
+
+        HBox buttonsBox = new HBox(addTransaction);
+        buttonsBox.getStyleClass().add("buttonsBox");
+
+        // Create layout containers
+        VBox container = new VBox();
+        GridPane gridView = new GridPane();
+        gridView.getStyleClass().add("listTab");
+
+        ColumnConstraints col0 = new ColumnConstraints(screenWidth*0.65);
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth*0.35);
+
+        RowConstraints row0 = new RowConstraints(screenHeight*0.1);
+        RowConstraints row1 = new RowConstraints(screenHeight*0.8);
+        RowConstraints row2 = new RowConstraints(screenHeight*0.1);
+
+
+        gridView.getColumnConstraints().addAll(col0, col1);
+        gridView.getRowConstraints().addAll(row0, row1, row2);
+
+
+        // Header row
+        HBox header = new HBox(10);
+        header.getStyleClass().add("listHeader");
+
+        Label descHeader = createHeaderLabel("Description", 120);
+        Label amountHeader = createHeaderLabel("Amount", 110);
+        Label categoryHeader = createHeaderLabel("Category", 110);
+        Label repeatFrequency = createHeaderLabel("Frequency", 110);
+        Label startDateHeader = createHeaderLabel("Start Date", 110);
+        Label endDateHeader = createHeaderLabel("End Date", 110);
+
+
+        header.getChildren().addAll(descHeader, amountHeader,  categoryHeader, repeatFrequency, startDateHeader, endDateHeader);
+
+        // ListView setup
+        ListView<RecurringTransaction> recurringTransactionListView = new ListView<>();
+        recurringTransactionListView.getStyleClass().add("listView");
+        recurringTransactionListView.setItems(recurringTransactions);
+
+        recurringTransactionListView.setCellFactory(_ -> new ListCell<>() {
+            @Override
+            protected void updateItem(RecurringTransaction transaction, boolean empty) {
+                super.updateItem(transaction, empty);
+                if (empty || transaction == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
+                            .format(transaction.getAmount());
+
+                    Label nameLabel = new Label(transaction.getDescription());
+                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
+
+                    if (transaction.isExpense()){
+                        amountLabel.getStyleClass().add("expense");
+                    }
+
+                    Label startDateLabel = new Label(transaction.getStartDate().toString());
+
+                    Label endDateLabel = new Label();
+                    if (transaction.getEndDate() != null){ endDateLabel.setText(transaction.getEndDate().toString()); }
+
+                    Label categoryLabel = new Label(transaction.getCategory().toString());
+                    Label frequencyLabel = new Label((transaction.getFrequency().toString()));
+
+                    nameLabel.setPrefWidth(120);
+                    amountLabel.setPrefWidth(110);
+                    startDateLabel.setPrefWidth(110);
+                    endDateLabel.setPrefWidth(110);
+                    categoryLabel.setPrefWidth(110);
+                    frequencyLabel.setPrefWidth(110);
+
+
+                    HBox row = new HBox(10, nameLabel, amountLabel, categoryLabel, frequencyLabel, startDateLabel, endDateLabel);
+                    setGraphic(row);
+                }
+            }
+        });
+
+        recurringTransactionListView.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, newSelection) -> {
+
+
+        });
+
+        // Assemble the UI
+        container.getChildren().addAll(header, recurringTransactionListView);
+
+
+        gridView.add(header, 0, 0);
+        gridView.add(recurringTransactionListView, 0, 1);
+        gridView.add(buttonsBox, 0, 2);
+
+        recurringTransactionsTab.setContent(gridView);
+
+
+
+        return recurringTransactionsTab;
+    }
+
+    private void newAccountDialogue() {
     }
 
     public void newTransactionDialogue() {
@@ -589,6 +725,123 @@ public class AppController {
         gridPane.setId("transactionRoot");
 
         for (int i = 0; i < 6; i++) {
+            gridPane.getRowConstraints().add(new RowConstraints(screenHeight / 8));
+        }
+
+        gridPane.getColumnConstraints().addAll(
+                new ColumnConstraints(screenWidth / 7),
+                new ColumnConstraints(screenWidth / 6)
+        );
+
+        // === Scene Setup ===
+        Scene scene = new Scene(gridPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+        dialog.setScene(scene);
+
+        // === Transaction Type Toggle ===
+        Label typeLabel = new Label("Transaction Type:");
+        typeLabel.getStyleClass().add("standardLabel");
+
+        HBox typeLabelBox = new HBox(typeLabel);
+        typeLabelBox.getStyleClass().add("labelBox");
+
+        ToggleButton expenseButton = createToggleButton("Expense", "redButton");
+        ToggleButton incomeButton = createToggleButton("Income", "greenButton");
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(expenseButton, incomeButton);
+        toggleGroup.selectToggle(expenseButton);
+
+        // Prevent deselection
+        for (Toggle toggle : toggleGroup.getToggles()) {
+            ((ToggleButton) toggle).addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                ToggleButton btn = (ToggleButton) event.getSource();
+                if (btn.isSelected()) event.consume();
+            });
+        }
+
+        HBox toggleButtonsBox = new HBox(expenseButton, incomeButton);
+        toggleButtonsBox.getStyleClass().add("toggleButtonsBox");
+
+        addLabeledField(gridPane, "Transaction Type:", toggleButtonsBox, 0);
+
+        // === Start Date Picker ===
+        DatePicker startDatePicker = new DatePicker(LocalDate.now());
+        addLabeledField(gridPane, "Start Date:", startDatePicker, 1);
+
+        // === Description Field ===
+        TextField descriptionField = new TextField();
+        addLabeledField(gridPane, "Description:", descriptionField, 2);
+
+        // === Category ChoiceBox ===
+        ChoiceBox<Category> categories = new ChoiceBox<>();
+        categories.getItems().addAll(Category.values());
+        categories.setPrefWidth(screenWidth / 5);
+        categories.getStyleClass().add("fieldBox");
+        addLabeledField(gridPane, "Category:", categories, 3);
+
+        // === Amount Spinner ===
+        Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, 0, 0.01);
+        amountSpinner.setEditable(true);
+        addLabeledField(gridPane, "Amount:", amountSpinner, 4);
+
+        // === Buttons ===
+        Button confirm = new Button("Confirm");
+        confirm.getStyleClass().addAll("button", "confirm");
+
+        confirm.setOnAction(_ -> {
+            Category category = categories.getValue();
+            LocalDate startDate = startDatePicker.getValue();
+            String description = descriptionField.getText().strip();
+            Double transactionAmount = amountSpinner.getValue();
+            Boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
+
+            if (category == null){
+                getErrorAlert("Empty Category Field");
+
+            } else if (startDate.toString().isBlank()) {
+                getErrorAlert("Empty Start Date Field");
+
+            } else if (description.isBlank()){
+                getErrorAlert("Empty Description Field");
+
+            } else if (transactionAmount.toString().isBlank()) {
+                getErrorAlert("Empty Amount Field");
+            } else {
+                Transaction newTransaction = new Transaction(category, startDate, description, transactionAmount, isExpense);
+                transactions.add(newTransaction);
+                TransactionsDatabase.addTransaction(newTransaction);
+                dialog.close();
+            }
+
+        });
+
+
+        Button cancel = new Button("Cancel");
+        cancel.getStyleClass().addAll("button", "cancel");
+
+        cancel.setOnAction(_ -> dialog.close());
+
+        HBox buttonBox = new HBox(confirm, cancel);
+        buttonBox.getStyleClass().add("buttonsBox");
+        gridPane.add(buttonBox, 0, 5, 2, 1);
+
+        // === Finalize Dialog ===
+        dialog.setOnShown(_ -> dialog.centerOnScreen());
+        dialog.show();
+    }
+
+    public void newRecurringTransactionDialogue(){
+        // === Stage Setup ===
+        Stage dialog = new Stage();
+        dialog.setTitle("Add New Transaction");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        // === GridPane Setup ===
+        GridPane gridPane = new GridPane();
+        gridPane.setId("transactionRoot");
+
+        for (int i = 0; i < 7; i++) {
             gridPane.getRowConstraints().add(new RowConstraints(screenHeight / 8));
         }
         gridPane.getColumnConstraints().addAll(
@@ -628,25 +881,36 @@ public class AppController {
 
         addLabeledField(gridPane, "Transaction Type:", toggleButtonsBox, 0);
 
-        // === Date Picker ===
-        DatePicker datePicker = new DatePicker(LocalDate.now());
-        addLabeledField(gridPane, "Date:", datePicker, 1);
+        // === Start Date Picker ===
+        DatePicker startDatePicker = new DatePicker(LocalDate.now());
+        addLabeledField(gridPane, "Start Date:", startDatePicker, 1);
+
+        // === End Date Picker ===
+        DatePicker endDatePicker = new DatePicker();
+        addLabeledField(gridPane, "End Date:", endDatePicker, 2);
 
         // === Description Field ===
         TextField descriptionField = new TextField();
-        addLabeledField(gridPane, "Description:", descriptionField, 2);
+        addLabeledField(gridPane, "Description:", descriptionField, 3);
 
         // === Category ChoiceBox ===
         ChoiceBox<Category> categories = new ChoiceBox<>();
         categories.getItems().addAll(Category.values());
         categories.setPrefWidth(screenWidth / 5);
         categories.getStyleClass().add("fieldBox");
-        addLabeledField(gridPane, "Category:", categories, 3);
+        addLabeledField(gridPane, "Category:", categories, 4);
+
+        // === Frequency ChoiceBox ===
+        ChoiceBox<Frequency> frequencyChoiceBox = new ChoiceBox<>();
+        frequencyChoiceBox.getItems().addAll(Frequency.values());
+        frequencyChoiceBox.setPrefWidth(screenWidth/5);
+        frequencyChoiceBox.getStyleClass().add("fieldBox");
+        addLabeledField(gridPane, "Frequency:", frequencyChoiceBox, 5);
 
         // === Amount Spinner ===
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, 0, 0.01);
         amountSpinner.setEditable(true);
-        addLabeledField(gridPane, "Amount:", amountSpinner, 4);
+        addLabeledField(gridPane, "Amount:", amountSpinner, 6);
 
         // === Buttons ===
         Button confirm = new Button("Confirm");
@@ -654,27 +918,37 @@ public class AppController {
 
         confirm.setOnAction(_ -> {
             Category category = categories.getValue();
-            LocalDate date = datePicker.getValue();
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue();
             String description = descriptionField.getText().strip();
             Double transactionAmount = amountSpinner.getValue();
-            Boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
+            boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
+            Frequency frequency = frequencyChoiceBox.getValue();
 
             if (category == null){
                 getErrorAlert("Empty Category Field");
 
-            } else if (date.toString().isBlank()) {
-                getErrorAlert("Empty Date Field");
+            } else if (startDate.toString().isBlank()) {
+                getErrorAlert("Empty Start Date Field");
 
             } else if (description.isBlank()){
                 getErrorAlert("Empty Description Field");
 
-            } else if (transactionAmount.toString().isBlank()){
+            } else if (transactionAmount.toString().isBlank()) {
                 getErrorAlert("Empty Amount Field");
-
+            } else if (frequency == null){
+                getErrorAlert("Empty Category Field");
             } else {
-                Transaction newTransaction = new Transaction(category, date, description, transactionAmount, isExpense);
-                transactions.add(newTransaction);
-                TransactionsDatabase.addTransaction(newTransaction);
+                RecurringTransaction newTransaction;
+                if (endDate == null){
+                    newTransaction = new RecurringTransaction(transactionAmount, description,
+                            category, startDate, frequency, isExpense);
+                } else {
+                    newTransaction = new RecurringTransaction(transactionAmount, description,
+                            category, startDate, endDate, frequency, isExpense);
+                }
+
+                recurringTransactions.add(newTransaction);
                 dialog.close();
             }
 
@@ -688,7 +962,7 @@ public class AppController {
 
         HBox buttonBox = new HBox(confirm, cancel);
         buttonBox.getStyleClass().add("buttonsBox");
-        gridPane.add(buttonBox, 0, 5, 2, 1);
+        gridPane.add(buttonBox, 0, 7, 2, 1);
 
         // === Finalize Dialog ===
         dialog.setOnShown(_ -> dialog.centerOnScreen());
@@ -787,6 +1061,9 @@ public class AppController {
 
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
         amountSpinner.setEditable(true);
+
+        // === Submit Button ===
+
 
         // === Submit Button ===
         Button confirm = new Button("Confirm");
