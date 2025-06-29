@@ -1,19 +1,16 @@
 package com.example.financeapp;
 
 import javafx.application.Application;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.Objects;
 
 public class FinanceApp extends Application {
@@ -47,7 +44,7 @@ public class FinanceApp extends Application {
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                TransactionsDatabase.updateDatabase(appController.transactions);
+                TransactionsDatabase.updateTransactionsDatabase(appController.transactions);
             }
         });
 

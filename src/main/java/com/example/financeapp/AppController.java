@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 
 public class AppController {
@@ -29,8 +30,6 @@ public class AppController {
 
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
     ObservableList<RecurringTransaction> recurringTransactions = FXCollections.observableArrayList();
-    RecurringTransaction test = new RecurringTransaction(14.00, "Test", Category.Groceries, LocalDate.now(), LocalDate.of(2026, 6, 29), Frequency.Monthly, false);
-
 
     public MenuBar getMenuBar(){
         MenuBar menuBar = new MenuBar();
@@ -56,6 +55,7 @@ public class AppController {
 
     public void initialiseApp(){
         transactions.addAll(TransactionsDatabase.loadTransactions());
+        recurringTransactions.addAll(TransactionsDatabase.loadRecurringTransactions());
     }
 
     public Tab getDashboardTab(){
@@ -420,7 +420,7 @@ public class AppController {
 
         for (Transaction transaction : transactions){
             if (transaction.isExpense() && transaction.getDate().getMonth().equals(LocalDate.now().getMonth())
-                    && transaction.getDate().isAfter(LocalDate.now())) {
+                    && transaction.getDate().getYear() == LocalDate.now().getYear() && transaction.getDate().isAfter(LocalDate.now())) {
                 monthlyPlannedExpenses += transaction.getAmount();
             }
         }
@@ -436,6 +436,8 @@ public class AppController {
         Tab transactionsTab = new Tab("Transactions");
         transactionsTab.setClosable(false);
 
+
+
         // Add Transaction Button:
         Button addTransaction = new Button("Add Transaction");
 
@@ -446,6 +448,9 @@ public class AppController {
 
         HBox buttonsBox = new HBox(addTransaction);
         buttonsBox.getStyleClass().add("buttonsBox");
+
+
+
 
         // Create layout containers
         VBox container = new VBox();
@@ -470,7 +475,7 @@ public class AppController {
 
         Label dateHeader = createHeaderLabel("Date", 150);
         Label descHeader = createHeaderLabel("Description", 200);
-        Label amountHeader = createHeaderLabel("Amount", 150);
+        Label amountHeader = createHeaderLabel("Amount", 140);
         Label categoryHeader = createHeaderLabel("Category", 200);
 
         header.getChildren().addAll(dateHeader, descHeader, amountHeader,  categoryHeader);
@@ -502,7 +507,7 @@ public class AppController {
                     Label categoryLabel = new Label(transaction.getCategory().toString());
 
                     nameLabel.setPrefWidth(200);
-                    amountLabel.setPrefWidth(150);
+                    amountLabel.setPrefWidth(140);
                     dateLabel.setPrefWidth(150);
                     categoryLabel.setPrefWidth(200);
 
@@ -597,9 +602,6 @@ public class AppController {
         Tab recurringTransactionsTab = new Tab("Recurring Transactions");
         recurringTransactionsTab.setClosable(false);
 
-        //test data:
-        recurringTransactions.add(test);
-
         // Add Transaction Button:
         Button addTransaction = new Button("Add Recurring Transaction");
         addTransaction.setOnAction(new EventHandler<ActionEvent>() {
@@ -691,8 +693,17 @@ public class AppController {
             }
         });
 
-        recurringTransactionListView.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, newSelection) -> {
+        VBox transactionEditor = new VBox();
 
+        recurringTransactionListView.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                if (oldSelection != null){
+                    gridView.getChildren().remove(transactionEditor);
+                }
+
+                transactionEditor.getChildren().setAll(getRecurringTransactionEditor(newSelection, recurringTransactionListView));
+                gridView.add(transactionEditor, 1, 0, 1, 2);
+            }
 
         });
 
@@ -705,8 +716,6 @@ public class AppController {
         gridView.add(buttonsBox, 0, 2);
 
         recurringTransactionsTab.setContent(gridView);
-
-
 
         return recurringTransactionsTab;
     }
@@ -797,16 +806,16 @@ public class AppController {
             Boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
 
             if (category == null){
-                getErrorAlert("Empty Category Field");
+                getErrorAlert("Empty Category Field", "Field Error");
 
             } else if (startDate.toString().isBlank()) {
-                getErrorAlert("Empty Start Date Field");
+                getErrorAlert("Empty Start Date Field", "Field Error");
 
             } else if (description.isBlank()){
-                getErrorAlert("Empty Description Field");
+                getErrorAlert("Empty Description Field", "Field Error");
 
             } else if (transactionAmount.toString().isBlank()) {
-                getErrorAlert("Empty Amount Field");
+                getErrorAlert("Empty Amount Field", "Field Error");
             } else {
                 Transaction newTransaction = new Transaction(category, startDate, description, transactionAmount, isExpense);
                 transactions.add(newTransaction);
@@ -926,18 +935,18 @@ public class AppController {
             Frequency frequency = frequencyChoiceBox.getValue();
 
             if (category == null){
-                getErrorAlert("Empty Category Field");
+                getErrorAlert("Empty Category Field", "Field Error");
 
             } else if (startDate.toString().isBlank()) {
-                getErrorAlert("Empty Start Date Field");
+                getErrorAlert("Empty Start Date Field", "Field Error");
 
             } else if (description.isBlank()){
-                getErrorAlert("Empty Description Field");
+                getErrorAlert("Empty Description Field", "Field Error");
 
             } else if (transactionAmount.toString().isBlank()) {
-                getErrorAlert("Empty Amount Field");
+                getErrorAlert("Empty Amount Field", "Field Error");
             } else if (frequency == null){
-                getErrorAlert("Empty Category Field");
+                getErrorAlert("Empty Category Field", "Field Error");
             } else {
                 RecurringTransaction newTransaction;
                 if (endDate == null){
@@ -949,6 +958,15 @@ public class AppController {
                 }
 
                 recurringTransactions.add(newTransaction);
+                TransactionsDatabase.addRecurringTransaction(newTransaction);
+
+// Only generate future transactions for the new one!
+                List<Transaction> future = TransactionsDatabase.generateFutureTransactions(
+                        List.of(newTransaction), LocalDate.now(), LocalDate.now().plusYears(1)
+                );
+                transactions.addAll(future);
+
+                TransactionsDatabase.updateTransactionsDatabase(transactions);
                 dialog.close();
             }
 
@@ -997,10 +1015,10 @@ public class AppController {
         grid.add(inputBox, 1, rowIndex);
     }
 
-    private void getErrorAlert(String contentText){
+    private void getErrorAlert(String contentText, String title){
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setContentText(contentText);
-        alert.setTitle("Empty Field Error!");
+        alert.setTitle(title);
 
         alert.show();
     }
@@ -1081,7 +1099,7 @@ public class AppController {
             transactions.addLast(temp);
             transactions.removeLast();
 
-            TransactionsDatabase.updateDatabase(transactions);
+            TransactionsDatabase.updateTransactionsDatabase(transactions);
 
         });
 
@@ -1103,7 +1121,7 @@ public class AppController {
                 // User clicked Yes
                 transactions.remove(transaction);
 
-                TransactionsDatabase.updateDatabase(transactions);
+                TransactionsDatabase.updateTransactionsDatabase(transactions);
 
                 gridPane.getChildren().clear();
             }
@@ -1121,6 +1139,135 @@ public class AppController {
         addLabeledField(gridPane, "Amount:", amountSpinner, 4);
 
         gridPane.add(buttonBox, 0, 5, 2, 1);
+
+        // === Wrap gridPane in a Card ===
+        VBox card = new VBox(gridPane);
+        card.getStyleClass().add("card");
+        card.setId("transactionEditor");
+
+        return card;
+    }
+
+    private VBox getRecurringTransactionEditor(RecurringTransaction transaction, ListView<RecurringTransaction> listView){
+        GridPane gridPane = new GridPane();
+        gridPane.setId("transactionRoot");
+
+        for (int i = 0; i < 7; i++) {
+            gridPane.getRowConstraints().add(new RowConstraints(screenHeight*(0.9/6)));
+        }
+        gridPane.getColumnConstraints().addAll(
+                new ColumnConstraints(screenWidth * 0.15),
+                new ColumnConstraints(screenWidth * 0.15)
+        );
+
+        // === Transaction Type Toggle ===
+        Label typeLabel = new Label("Transaction Type:");
+        typeLabel.getStyleClass().add("standardLabel");
+
+        HBox typeLabelBox = new HBox(typeLabel);
+        typeLabelBox.getStyleClass().add("labelBox");
+
+        ToggleButton expenseButton = createToggleButton("Expense", "redButton");
+        ToggleButton incomeButton = createToggleButton("Income", "greenButton");
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(expenseButton, incomeButton);
+
+        if (transaction.isExpense()) {
+            toggleGroup.selectToggle(expenseButton);
+        } else {
+            toggleGroup.selectToggle(incomeButton);
+        }
+
+        // Prevent deselection
+        for (Toggle toggle : toggleGroup.getToggles()) {
+            ((ToggleButton) toggle).addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                ToggleButton btn = (ToggleButton) event.getSource();
+                if (btn.isSelected()) event.consume();
+            });
+        }
+
+        HBox toggleButtonsBox = new HBox(expenseButton, incomeButton);
+        toggleButtonsBox.getStyleClass().add("toggleButtonsBox");
+
+        // === Form Fields ===
+        DatePicker startDatePicker = new DatePicker(transaction.getStartDate());
+
+        DatePicker endDatePicker = transaction.getEndDate() != null
+                ? new DatePicker(transaction.getEndDate())
+                : new DatePicker();
+
+        TextField descriptionField = new TextField(transaction.getDescription());
+
+        ChoiceBox<Category> categories = new ChoiceBox<>();
+        categories.setValue(transaction.getCategory());
+        categories.getItems().addAll(Category.values());
+        categories.setPrefWidth(screenWidth / 5);
+        categories.getStyleClass().add("fieldBox");
+
+        Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
+        amountSpinner.setEditable(true);
+
+        // === Submit Button ===
+        Button confirm = new Button("Confirm");
+        confirm.getStyleClass().addAll("button", "confirm");
+
+        confirm.setOnAction(_ -> {
+            transaction.setCategory(categories.getValue());
+            transaction.setStartDate(startDatePicker.getValue());
+            transaction.setDescription(descriptionField.getText().strip());
+            transaction.setEndDate(endDatePicker.getValue());
+            transaction.setAmount(amountSpinner.getValue());
+            transaction.setExpense(toggleGroup.getSelectedToggle() == expenseButton);
+
+            if (endDatePicker.getValue() != null && startDatePicker.getValue().isAfter(endDatePicker.getValue())){
+                getErrorAlert("Start Date is after End Date!", "Date Error");
+            } else {
+                listView.refresh();
+
+                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+            }
+        });
+
+        // === Delete Button ===
+        Button deleteButton = new Button("Delete Transaction");
+        deleteButton.getStyleClass().addAll("button", "cancel");
+        deleteButton.setOnAction(_ -> {
+            Alert warningAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            warningAlert.setTitle("Delete Transaction?");
+            warningAlert.setContentText("Do you want to delete this transaction?");
+
+
+            ButtonType allButton = new ButtonType("All Transactions", ButtonBar.ButtonData.YES);
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
+            ButtonType futureButton = new ButtonType("Future Transactions", ButtonBar.ButtonData.HELP);
+
+            warningAlert.getButtonTypes().setAll(allButton, futureButton, cancelButton);
+            Optional<ButtonType> result = warningAlert.showAndWait();
+
+            if (result.isPresent() && result.get() == allButton) {
+                // User clicked Yes
+                recurringTransactions.remove(transaction);
+
+                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+
+                gridPane.getChildren().clear();
+            }
+        });
+
+
+        HBox buttonBox = new HBox(confirm, deleteButton);
+        buttonBox.getStyleClass().add("buttonsBox");
+
+        // === Layout Grid ===
+        addLabeledField(gridPane, "Transaction Type:", toggleButtonsBox, 0);
+        addLabeledField(gridPane, "Start Date:", startDatePicker, 1);
+        addLabeledField(gridPane, "End Date:", endDatePicker, 2);
+        addLabeledField(gridPane, "Description:", descriptionField, 3);
+        addLabeledField(gridPane, "Category:", categories, 4);
+        addLabeledField(gridPane, "Amount:", amountSpinner, 5);
+
+        gridPane.add(buttonBox, 0, 6, 2, 1);
 
         // === Wrap gridPane in a Card ===
         VBox card = new VBox(gridPane);

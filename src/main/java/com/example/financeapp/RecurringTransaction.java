@@ -10,6 +10,7 @@ public class RecurringTransaction {
     private LocalDate endDate;
     private Frequency frequency;
     private boolean isExpense;
+    private int recurringID;
 
     public RecurringTransaction(double amount, String description, Category category,
                                 LocalDate startDate, Frequency frequency, boolean isExpense) {
@@ -32,6 +33,8 @@ public class RecurringTransaction {
         this.frequency = frequency;
         this.isExpense = isExpense;
     }
+
+
 
     public double getAmount() {
         return amount;
@@ -87,5 +90,13 @@ public class RecurringTransaction {
 
     public void setExpense(boolean expense) {
         isExpense = expense;
+    }
+
+    public Integer getId(){
+        return recurringID;
+    }
+
+    public void setId(int recurringID){
+        this.recurringID = recurringID;
     }
 }

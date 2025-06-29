@@ -8,6 +8,7 @@ public class Transaction {
     private String description;
     private Double amount;
     private boolean isExpense;
+    private Integer recurringId; // nullable
 
     public Transaction(Category category, LocalDate date, String description,
                        Double amount, boolean isExpense){
@@ -61,7 +62,13 @@ public class Transaction {
         return isExpense;
     }
 
+    public Integer getRecurringId(){
+        return recurringId;
+    }
 
+    public void setRecurringId(int id){
+        recurringId = id;
+    }
 
 
 }
