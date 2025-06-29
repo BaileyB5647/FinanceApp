@@ -68,44 +68,7 @@ public class AppController {
      *
      * @return the {@link Tab} containing the complete dashboard layout and content
      */
-
     public Tab getDashboardTab(){
-        // Dashboard Tab Setup
-        Tab dashboard = new Tab("Dashboard");
-        dashboard.setClosable(false);
-
-        // Grid Pane Setup
-        GridPane gridPane = new GridPane();
-        gridPane.setId("root");
-
-        gridPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        GridPane.setHgrow(gridPane, Priority.ALWAYS);
-        GridPane.setVgrow(gridPane, Priority.ALWAYS);
-
-
-
-        ColumnConstraints col0 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col1 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col2 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col3 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col4 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col5 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col6 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col7 = new ColumnConstraints(screenWidth/8);
-
-
-        RowConstraints row0 = new RowConstraints(screenHeight/8);
-        RowConstraints row1 = new RowConstraints(screenHeight/8);
-        RowConstraints row2 = new RowConstraints(screenHeight/8);
-        RowConstraints row3 = new RowConstraints(screenHeight/8);
-        RowConstraints row4 = new RowConstraints(screenHeight/8);
-        RowConstraints row5 = new RowConstraints(screenHeight/8);
-        RowConstraints row6 = new RowConstraints(screenHeight/8);
-        RowConstraints row7 = new RowConstraints(screenHeight/8);
-
-        gridPane.getColumnConstraints().addAll(col0, col1, col2, col3, col4, col5, col6, col7);
-        gridPane.getRowConstraints().addAll(row0, row1, row2, row3, row4, row5, row6, row7);
-
         // - = - = - = - = - = - = - = - =
         // Card One: Balance Data
         // - = - = - = - = - = - = - = - =
@@ -125,11 +88,10 @@ public class AppController {
         HBox balanceTitleBox = new HBox(balanceTitle);
         balanceTitleBox.getStyleClass().add("balanceTitleBox");
 
-        // Balance Value
 
+        // Balance Value
         StringBinding balanceStringBinding = new StringBinding() {
-            {
-                // Bind to changes in the transactions list
+            {   // Bind to changes in the transactions list
                 bind(transactions);
             }
 
@@ -146,11 +108,10 @@ public class AppController {
         balanceLabel.textProperty().bind(balanceStringBinding);
         balanceLabel.getStyleClass().add("balanceValue");
 
-        if (getBalance(transactions) > 0 ){
-            balanceLabel.setId("positive");
-        } else {
-            balanceLabel.setId("negative");
-        }
+
+        // Balance Conditional Styling
+        if (getBalance(transactions) > 0 ){ balanceLabel.setId("positive");}
+        else { balanceLabel.setId("negative"); }
 
         transactions.addListener((ListChangeListener<Transaction>) _ -> {
             double currentBalance = getBalance(transactions);
@@ -161,26 +122,25 @@ public class AppController {
             }
         });
 
+
         HBox balanceBox = new HBox(balanceLabel);
         balanceBox.getStyleClass().add("balanceBox");
 
-
+        // Card Setup
         VBox cardOne = new VBox();
 
         cardOne.getChildren().addAll(monthBox, balanceTitleBox, balanceBox);
         cardOne.getStyleClass().add("card");
 
-        gridPane.add(cardOne, 0, 0, 3,3);
 
+        // - = - = - = - = - = - = - = - =
+        // Budget Data Card
+        // - = - = - = - = - = - = - = - =
 
-        // Card Two: Budget Data
-
-        // Budget Section Title
-
-        Label budgetTitle = new Label("Budget");
-        budgetTitle.getStyleClass().add("sectionTitle");
-
+        Label budgetTitle   = new Label("Budget");
         HBox budgetTitleBox = new HBox(budgetTitle);
+
+        budgetTitle.getStyleClass().add("sectionTitle");
         budgetTitleBox.getStyleClass().add("budgetTitleBox");
 
         // Budget Display Bar
@@ -190,29 +150,32 @@ public class AppController {
         budgetDisplayBar.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(budgetDisplayBar, Priority.ALWAYS);
 
-        Label spent = new Label("Spent: ");
-        spent.getStyleClass().add("boldLabel");
 
+        // Spent Data
+        Label spent      = new Label("Spent: ");
         Label spentValue = new Label("£250.00");
-        spentValue.getStyleClass().add("standardLabel");
+        HBox spentBox    = new HBox(spent, spentValue);
 
-        HBox spentBox = new HBox(spent, spentValue);
+        spent.getStyleClass().add("boldLabel");
+        spentValue.getStyleClass().add("standardLabel");
         spentBox.getStyleClass().add("spentBox");
 
 
-        Label remaining = new Label("Remaining: ");
-        remaining.getStyleClass().add("boldLabel");
-
+        // Remaining Data
+        Label remaining      = new Label("Remaining: ");
         Label remainingValue = new Label("£250.00");
-        remainingValue.getStyleClass().add("standardLabel");
+        HBox remainingBox    = new HBox(remaining, remainingValue);
 
-        HBox remainingBox = new HBox(remaining, remainingValue);
+        remaining.getStyleClass().add("boldLabel");
+        remainingValue.getStyleClass().add("standardLabel");
         remainingBox.getStyleClass().add("remainingBox");
 
+
+        // Spacer
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-
+        // Card Setup
         HBox budgetDisplayLabels = new HBox(spentBox, spacer, remainingBox);
         budgetDisplayLabels.getStyleClass().add("budgetDisplayLabels");
 
@@ -220,28 +183,28 @@ public class AppController {
 
         cardTwo.getStyleClass().add("card");
 
-        gridPane.add(cardTwo, 4, 0, 4, 3);
 
+        // - = - = - = - = - = - = - = - =
         // Line Break
+        // - = - = - = - = - = - = - = - =
 
         Line lineBreak = new Line();
         lineBreak.setEndX(screenWidth);
         lineBreak.getStyleClass().add("line");
-        gridPane.add(lineBreak, 0, 3, 8, 1);
 
-        // Card 4: Income Data
+        // - = - = - = - = - = - = - = - =
+        // Income Card
+        // - = - = - = - = - = - = - = - =
 
-        Label incomeLabel = new Label("Income");
-        incomeLabel.getStyleClass().add("dataTitle");
-
+        Label incomeLabel   = new Label("Income");
         HBox incomeLabelBox = new HBox(incomeLabel);
+
+        incomeLabel.getStyleClass().add("dataTitle");
         incomeLabelBox.getStyleClass().add("dataTitleBox");
 
-        gridPane.add(incomeLabelBox, 0, 4, 2, 1);
 
         StringBinding incomeStringBinding = new StringBinding() {
-            {
-                // Bind to changes in the transactions list
+            {   // Bind to changes in the transactions list
                 bind(transactions);
             }
 
@@ -254,6 +217,7 @@ public class AppController {
             }
         };
 
+
         Label incomeValue = new Label();
         incomeValue.textProperty().bind(incomeStringBinding);
         incomeValue.getStyleClass().add("valueLabel");
@@ -262,21 +226,20 @@ public class AppController {
         HBox incomeValueBox = new HBox(incomeValue);
         incomeValueBox.getStyleClass().add("greenCard");
 
-        gridPane.add(incomeValueBox, 0, 5, 2, 2);
 
-        // Card 5: Expenses Data
+        // - = - = - = - = - = - = - = - =
+        // Expenses Card
+        // - = - = - = - = - = - = - = - =
 
-        Label expensesLabel = new Label("Expenses");
-        expensesLabel.getStyleClass().add("dataTitle");
-
+        Label expensesLabel   = new Label("Expenses");
         HBox expensesLabelBox = new HBox(expensesLabel);
+
+        expensesLabel.getStyleClass().add("dataTitle");
         expensesLabelBox.getStyleClass().add("dataTitleBox");
 
-        gridPane.add(expensesLabelBox, 2, 4, 2, 1);
 
         StringBinding expensesStringBinding = new StringBinding() {
-            {
-                // Bind to changes in the transactions list
+            {   // Bind to changes in the transactions list
                 bind(transactions);
             }
 
@@ -289,6 +252,7 @@ public class AppController {
             }
         };
 
+
         Label expensesValue = new Label();
         expensesValue.textProperty().bind(expensesStringBinding);
         expensesValue.getStyleClass().add("valueLabel");
@@ -297,21 +261,20 @@ public class AppController {
         HBox expensesValueBox = new HBox(expensesValue);
         expensesValueBox.getStyleClass().add("redCard");
 
-        gridPane.add(expensesValueBox, 2, 5, 2, 2);
 
-        // Card 6: Planned Expenses
+        // - = - = - = - = - = - = - = - =
+        // Planned Expenses Card
+        // - = - = - = - = - = - = - = - =
 
-        Label plannedExpensesLabel = new Label("Planned Expenses");
-        plannedExpensesLabel.getStyleClass().add("dataTitle");
-
+        Label plannedExpensesLabel   = new Label("Planned Expenses");
         HBox plannedExpensesLabelBox = new HBox(plannedExpensesLabel);
+
+        plannedExpensesLabel.getStyleClass().add("dataTitle");
         plannedExpensesLabelBox.getStyleClass().add("dataTitleBox");
 
-        gridPane.add(plannedExpensesLabelBox, 4, 4, 2, 1);
 
         StringBinding plannedExpensesStringBinding = new StringBinding() {
-            {
-                // Bind to changes in the transactions list
+            {   // Bind to changes in the transactions list
                 bind(transactions);
             }
 
@@ -324,6 +287,7 @@ public class AppController {
             }
         };
 
+
         Label plannedExpensesValue = new Label();
         plannedExpensesValue.textProperty().bind(plannedExpensesStringBinding);
         plannedExpensesValue.getStyleClass().add("valueLabel");
@@ -331,22 +295,21 @@ public class AppController {
         HBox plannedExpensesValueBox = new HBox(plannedExpensesValue);
         plannedExpensesValueBox.getStyleClass().add("yellowCard");
 
-        gridPane.add(plannedExpensesValueBox, 4, 5, 2, 2);
 
 
-        // Card 7: Net Cashflow
+        // - = - = - = - = - = - = - = - =
+        // Net Cashflow Card
+        // - = - = - = - = - = - = - = - =
 
-        Label netCashflowLabel = new Label("Net Cashflow");
-        netCashflowLabel.getStyleClass().add("dataTitle");
-
+        Label netCashflowLabel   = new Label("Net Cashflow");
         HBox netCashflowLabelBox = new HBox(netCashflowLabel);
+
+        netCashflowLabel.getStyleClass().add("dataTitle");
         netCashflowLabelBox.getStyleClass().add("dataTitleBox");
 
-        gridPane.add(netCashflowLabelBox, 6, 4, 2, 1);
 
         StringBinding netCashflowStringBinding = new StringBinding() {
-            {
-                // Bind to changes in the transactions list
+            {   // Bind to changes in the transactions list
                 bind(transactions);
             }
 
@@ -359,42 +322,100 @@ public class AppController {
             }
         };
 
+
         Label netCashflowValue = new Label();
         netCashflowValue.textProperty().bind(netCashflowStringBinding);
+
         netCashflowValue.getStyleClass().add("valueLabel");
         netCashflowValue.setId("white");
 
         HBox netCashflowValueBox = new HBox(netCashflowValue);
 
-        if (getNetCashflow(transactions) >= 0) {
-            netCashflowValueBox.getStyleClass().add("greenCard");
-        } else {
-            netCashflowValueBox.getStyleClass().add("redCard");
-        }
+        // Conditional Styling for the Net Cashflow Card:
 
+        if (getNetCashflow(transactions) >= 0) { netCashflowValueBox.getStyleClass().add("greenCard"); }
+        else { netCashflowValueBox.getStyleClass().add("redCard"); }
+
+        // For any changes in the string binding, check to see if style needs to be updated
         netCashflowStringBinding.addListener((_) -> {
             netCashflowValueBox.getStyleClass().clear();
-            if (getNetCashflow(transactions) >= 0) {
-                netCashflowValueBox.getStyleClass().add("greenCard");
-            } else {
-                netCashflowValueBox.getStyleClass().add("redCard");
-            }
+
+            if (getNetCashflow(transactions) >= 0) { netCashflowValueBox.getStyleClass().add("greenCard"); }
+            else { netCashflowValueBox.getStyleClass().add("redCard"); }
         });
 
-        gridPane.add(netCashflowValueBox, 6, 5, 2, 2);
 
-        // Add Transaction Button:
+        // - = - = - = - = - = - = - = - =
+        // Add Transaction Button
+        // - = - = - = - = - = - = - = - =
+
         Button addTransaction = new Button("Add Transaction");
+        addTransaction.setPrefSize(screenWidth/4, screenHeight/8);
+        addTransaction.getStyleClass().add("transactionButton");
 
         addTransaction.setOnAction(_ -> newTransactionDialogue());
 
-        addTransaction.getStyleClass().add("transactionButton");
-        addTransaction.setPrefSize(screenWidth/4, screenHeight/8);
 
         HBox buttonsBox = new HBox(addTransaction);
         buttonsBox.getStyleClass().add("buttonsBox");
 
-        gridPane.add(buttonsBox, 3, 7, 2, 1);
+
+        // - = - = - = - = - = - = - = - =
+        // Grid Pane Setup
+        // - = - = - = - = - = - = - = - =
+
+        GridPane gridPane = new GridPane();
+        gridPane.setId("root");
+
+        // Column Constraints
+        ColumnConstraints col0 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col2 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col3 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col4 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col5 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col6 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col7 = new ColumnConstraints(screenWidth/8);
+
+        // Row Constraints
+        RowConstraints row0 = new RowConstraints(screenHeight/8);
+        RowConstraints row1 = new RowConstraints(screenHeight/8);
+        RowConstraints row2 = new RowConstraints(screenHeight/8);
+        RowConstraints row3 = new RowConstraints(screenHeight/8);
+        RowConstraints row4 = new RowConstraints(screenHeight/8);
+        RowConstraints row5 = new RowConstraints(screenHeight/8);
+        RowConstraints row6 = new RowConstraints(screenHeight/8);
+        RowConstraints row7 = new RowConstraints(screenHeight/8);
+
+        gridPane.getColumnConstraints().addAll(col0, col1, col2, col3, col4, col5, col6, col7);
+        gridPane.getRowConstraints().addAll(row0, row1, row2, row3, row4, row5, row6, row7);
+
+        // Add Tab Content to the Grid Pane:
+
+        gridPane.add(cardOne,0, 0, 3, 3);
+        gridPane.add(cardTwo,4, 0, 4, 3);
+
+        gridPane.add(lineBreak,0, 3, 8, 1);
+
+        gridPane.add(incomeLabelBox,0, 4, 2, 1);
+        gridPane.add(incomeValueBox,0, 5, 2, 2);
+
+        gridPane.add(expensesLabelBox,2, 4, 2, 1);
+        gridPane.add(expensesValueBox,2, 5, 2, 2);
+
+        gridPane.add(plannedExpensesLabelBox,4, 4, 2, 1);
+        gridPane.add(plannedExpensesValueBox,4, 5, 2, 2);
+
+        gridPane.add(netCashflowLabelBox,6, 4, 2, 1);
+        gridPane.add(netCashflowValueBox,6, 5, 2, 2);
+
+        gridPane.add(buttonsBox,3, 7, 2, 1);
+
+        // - = - = - = - = - = - = - = - =
+        // Tab Setup
+        // - = - = - = - = - = - = - = - =
+        Tab dashboard = new Tab("Dashboard");
+        dashboard.setClosable(false);
 
         dashboard.setContent(gridPane);
 
@@ -410,26 +431,24 @@ public class AppController {
      * @return the {@link Tab} containing the complete transactions layout and content
      */
     public Tab getTransactionsTab() {
-        Tab transactionsTab = new Tab("Transactions");
-        transactionsTab.setClosable(false);
-
-
-
-        // Add Transaction Button:
+        // - = - = - = - = - = - = - = - =
+        // Add Transaction Button
+        // - = - = - = - = - = - = - = - =
         Button addTransaction = new Button("Add Transaction");
 
-        addTransaction.setOnAction(_ -> newTransactionDialogue());
-
-        addTransaction.getStyleClass().add("transactionButton");
         addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
+        addTransaction.getStyleClass().add("transactionButton");
+
+        addTransaction.setOnAction(_ -> newTransactionDialogue());
 
         HBox buttonsBox = new HBox(addTransaction);
         buttonsBox.getStyleClass().add("buttonsBox");
 
 
+        // - = - = - = - = - = - = - = - =
+        // Layout Containers
+        // - = - = - = - = - = - = - = - =
 
-
-        // Create layout containers
         VBox container = new VBox();
         GridPane gridView = new GridPane();
         gridView.getStyleClass().add("listTab");
@@ -441,25 +460,31 @@ public class AppController {
         RowConstraints row1 = new RowConstraints(screenHeight*0.8);
         RowConstraints row2 = new RowConstraints(screenHeight*0.1);
 
-
         gridView.getColumnConstraints().addAll(col0, col1);
         gridView.getRowConstraints().addAll(row0, row1, row2);
 
 
-        // Header row
+        // - = - = - = - = - = - = - = - =
+        // Header Row
+        // - = - = - = - = - = - = - = - =
         HBox header = new HBox(10);
+
         header.getStyleClass().add("listHeader");
 
-        Label dateHeader = createHeaderLabel("Date", 150);
-        Label descHeader = createHeaderLabel("Description", 200);
-        Label amountHeader = createHeaderLabel("Amount", 140);
-        Label categoryHeader = createHeaderLabel("Category", 200);
+        // Create Header Titles, Set Header Widths
+        Label dateHeader     = createHeaderLabel("Date",        150);
+        Label descHeader     = createHeaderLabel("Description", 200);
+        Label amountHeader   = createHeaderLabel("Amount",      140);
+        Label categoryHeader = createHeaderLabel("Category",    200);
 
         header.getChildren().addAll(dateHeader, descHeader, amountHeader,  categoryHeader);
 
-        // ListView setup
+        // - = - = - = - = - = - = - = - =
+        // ListView Setup
+        // - = - = - = - = - = - = - = - =
         ListView<Transaction> transactionListView = new ListView<>();
         transactionListView.getStyleClass().add("listView");
+
         transactionListView.setItems(transactions);
 
         transactionListView.setCellFactory(_ -> new ListCell<>() {
@@ -469,30 +494,37 @@ public class AppController {
                 if (empty || transaction == null) {
                     setText(null);
                     setGraphic(null);
+
                 } else {
                     String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
                             .format(transaction.getAmount());
 
-                    Label nameLabel = new Label(transaction.getDescription());
-                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
 
-                    if (transaction.isExpense()){
-                        amountLabel.getStyleClass().add("expense");
-                    }
-
-                    Label dateLabel = new Label(transaction.getDate().toString());
+                    Label nameLabel     = new Label(transaction.getDescription());
+                    Label dateLabel     = new Label(transaction.getDate().toString());
                     Label categoryLabel = new Label(transaction.getCategory().toString());
 
+                    // Amount Label Styling
+                    Label amountLabel   = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount); // if the amount is an expense, put a negative sign in front of it
+                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); }
+
+                    // Set the Column Widths
                     nameLabel.setPrefWidth(200);
                     amountLabel.setPrefWidth(140);
                     dateLabel.setPrefWidth(150);
                     categoryLabel.setPrefWidth(200);
 
+                    // Assemble Row
                     HBox row = new HBox(10, dateLabel, nameLabel, amountLabel, categoryLabel);
+
                     setGraphic(row);
                 }
             }
         });
+
+        // - = - = - = - = - = - = - = - =
+        // Transaction Editor
+        // - = - = - = - = - = - = - = - =
 
         VBox transactionEditor = new VBox();
 
@@ -507,9 +539,13 @@ public class AppController {
             }
         });
 
+        // - = - = - = - = - = - = - = - =
         // Assemble the UI
-        container.getChildren().addAll(header, transactionListView);
+        // - = - = - = - = - = - = - = - =
+        Tab transactionsTab = new Tab("Transactions");
+        transactionsTab.setClosable(false);
 
+        container.getChildren().addAll(header, transactionListView);
 
         gridView.add(header, 0, 0);
         gridView.add(transactionListView, 0, 1);
@@ -600,7 +636,9 @@ public class AppController {
         Tab recurringTransactionsTab = new Tab("Recurring Transactions");
         recurringTransactionsTab.setClosable(false);
 
-        // Add Transaction Button:
+        // - = - = - = - = - = - = - = - =
+        // Add Transaction Button
+        // - = - = - = - = - = - = - = - =
         Button addTransaction = new Button("Add Recurring Transaction");
         addTransaction.setOnAction(_ -> newRecurringTransactionDialogue());
 
@@ -610,8 +648,11 @@ public class AppController {
         HBox buttonsBox = new HBox(addTransaction);
         buttonsBox.getStyleClass().add("buttonsBox");
 
-        // Create layout containers
+        // - = - = - = - = - = - = - = - =
+        // Create Layout Containers
+        // - = - = - = - = - = - = - = - =
         VBox container = new VBox();
+
         GridPane gridView = new GridPane();
         gridView.getStyleClass().add("listTab");
 
@@ -627,23 +668,27 @@ public class AppController {
         gridView.getRowConstraints().addAll(row0, row1, row2);
 
 
-        // Header row
+        // - = - = - = - = - = - = - = - =
+        // Header Row
+        // - = - = - = - = - = - = - = - =
         HBox header = new HBox(10);
         header.getStyleClass().add("listHeader");
 
-        Label descHeader = createHeaderLabel("Description", 120);
-        Label amountHeader = createHeaderLabel("Amount", 110);
-        Label categoryHeader = createHeaderLabel("Category", 110);
-        Label repeatFrequency = createHeaderLabel("Frequency", 110);
-        Label startDateHeader = createHeaderLabel("Start Date", 110);
-        Label endDateHeader = createHeaderLabel("End Date", 110);
-
+        Label descHeader      = createHeaderLabel("Description", 120);
+        Label amountHeader    = createHeaderLabel("Amount",      110);
+        Label categoryHeader  = createHeaderLabel("Category",    110);
+        Label repeatFrequency = createHeaderLabel("Frequency",   110);
+        Label startDateHeader = createHeaderLabel("Start Date",  110);
+        Label endDateHeader   = createHeaderLabel("End Date",    110);
 
         header.getChildren().addAll(descHeader, amountHeader,  categoryHeader, repeatFrequency, startDateHeader, endDateHeader);
 
-        // ListView setup
+        // - = - = - = - = - = - = - = - =
+        // ListView Setup
+        // - = - = - = - = - = - = - = - =
         ListView<RecurringTransaction> recurringTransactionListView = new ListView<>();
         recurringTransactionListView.getStyleClass().add("listView");
+
         recurringTransactionListView.setItems(recurringTransactions);
 
         recurringTransactionListView.setCellFactory(_ -> new ListCell<>() {
@@ -657,21 +702,21 @@ public class AppController {
                     String formattedAmount = NumberFormat.getCurrencyInstance(Locale.getDefault())
                             .format(transaction.getAmount());
 
-                    Label nameLabel = new Label(transaction.getDescription());
-                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
-
-                    if (transaction.isExpense()){
-                        amountLabel.getStyleClass().add("expense");
-                    }
-
+                    Label nameLabel      = new Label(transaction.getDescription());
                     Label startDateLabel = new Label(transaction.getStartDate().toString());
+                    Label categoryLabel  = new Label(transaction.getCategory().toString());
+                    Label frequencyLabel = new Label((transaction.getFrequency().toString()));
 
+                    // End Date Label Setup
                     Label endDateLabel = new Label();
                     if (transaction.getEndDate() != null){ endDateLabel.setText(transaction.getEndDate().toString()); }
 
-                    Label categoryLabel = new Label(transaction.getCategory().toString());
-                    Label frequencyLabel = new Label((transaction.getFrequency().toString()));
+                    // Amount Label Setup & Conditional Styling
+                    Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
 
+                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); }
+
+                    // Column Width
                     nameLabel.setPrefWidth(120);
                     amountLabel.setPrefWidth(110);
                     startDateLabel.setPrefWidth(110);
@@ -679,12 +724,16 @@ public class AppController {
                     categoryLabel.setPrefWidth(110);
                     frequencyLabel.setPrefWidth(110);
 
-
                     HBox row = new HBox(10, nameLabel, amountLabel, categoryLabel, frequencyLabel, startDateLabel, endDateLabel);
+
                     setGraphic(row);
                 }
             }
         });
+
+        // - = - = - = - = - = - = - = - =
+        // Transaction Editor
+        // - = - = - = - = - = - = - = - =
 
         VBox transactionEditor = new VBox();
 
@@ -698,7 +747,9 @@ public class AppController {
 
         });
 
+        // - = - = - = - = - = - = - = - =
         // Assemble the UI
+        // - = - = - = - = - = - = - = - =
         container.getChildren().addAll(header, recurringTransactionListView);
 
 

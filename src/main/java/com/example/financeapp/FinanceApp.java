@@ -1,25 +1,20 @@
 package com.example.financeapp;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-
-import java.io.IOException;
 import java.util.Objects;
 
 public class FinanceApp extends Application {
-
     private final double screenWidth = Screen.getPrimary().getBounds().getWidth();
     private final double screenHeight = Screen.getPrimary().getBounds().getHeight();
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
         AppController appController = new AppController();
 
         TransactionsDatabase.init();
@@ -41,12 +36,7 @@ public class FinanceApp extends Application {
         Tab recurringTransactions = appController.getRecurringTransactionsTab();
         Tab accounts = appController.getAccountsTab();
 
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                TransactionsDatabase.updateTransactionsDatabase(appController.transactions);
-            }
-        });
+        stage.setOnCloseRequest(_ -> TransactionsDatabase.updateTransactionsDatabase(appController.transactions));
 
         tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions, accounts);
 

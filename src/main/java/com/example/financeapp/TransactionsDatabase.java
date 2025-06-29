@@ -4,7 +4,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.sql.*;
+import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -214,8 +216,19 @@ public class TransactionsDatabase {
             LocalDate next = rt.getStartDate();
             LocalDate until = rt.getEndDate() != null ? rt.getEndDate() : to;
 
+
+
             while (!next.isAfter(to) && !next.isAfter(until)) {
                 if (!next.isBefore(from)) {
+
+                    try {
+                        if (next.getDayOfMonth() != rt.getStartDate().getDayOfMonth()) {
+                            next = next.withDayOfMonth(rt.getStartDate().getDayOfMonth());
+                        }
+                    } catch (DateTimeException e){
+                        System.out.println("test");
+                    }
+
                     Transaction generated = new Transaction(
                             rt.getCategory(),
                             next,
@@ -225,6 +238,7 @@ public class TransactionsDatabase {
                     );
                     generated.setRecurringId(rtId); // Link it back
                     result.add(generated);         // ⬅️ Add to result
+
                 }
 
                 // Step to next date
