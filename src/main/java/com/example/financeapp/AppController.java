@@ -697,9 +697,7 @@ public class AppController {
 
         recurringTransactionListView.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                if (oldSelection != null){
-                    gridView.getChildren().remove(transactionEditor);
-                }
+                gridView.getChildren().remove(transactionEditor);
 
                 transactionEditor.getChildren().setAll(getRecurringTransactionEditor(newSelection, recurringTransactionListView));
                 gridView.add(transactionEditor, 1, 0, 1, 2);
@@ -1250,6 +1248,22 @@ public class AppController {
                 recurringTransactions.remove(transaction);
 
                 TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+
+                transactions.removeIf(transaction1 -> Objects.equals(transaction1.getRecurringId(), transaction.getId()));
+
+                TransactionsDatabase.updateTransactionsDatabase(transactions);
+
+
+                gridPane.getChildren().clear();
+            } else if (result.isPresent() && result.get() == futureButton){
+                recurringTransactions.remove(transaction);
+
+                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+
+                transactions.removeIf(transaction1 -> (Objects.equals(transaction1.getRecurringId(), transaction.getId()) &&
+                        transaction1.getDate().isAfter(LocalDate.now())));
+
+                TransactionsDatabase.updateTransactionsDatabase(transactions);
 
                 gridPane.getChildren().clear();
             }
