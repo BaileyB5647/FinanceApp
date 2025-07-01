@@ -319,6 +319,10 @@
     -fx-alignment: center;
 }
 
+.comboBox {
+    -fx-background-fill: white;
+}
+
 /* Confirm/Cancel Buttons */
 .button {
     -fx-text-fill: white;
@@ -406,4 +410,22 @@
     -fx-scale-x: 1;
     -fx-scale-y: 1;
 }
+/* ========== Chart Styling ========== */
 
+.chart {
+    -fx-legend-visible: false;
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 15;
+}
+
+.chart-title {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+}
+
+
+
+.chart-horizontal-zero-line {
+    -fx-stroke-fill: black;
+    -fx-stroke-width: 2;
+}

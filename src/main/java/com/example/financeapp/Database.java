@@ -6,11 +6,10 @@ import javafx.collections.ObservableList;
 import java.sql.*;
 import java.time.DateTimeException;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransactionsDatabase {
+public class Database {
     private static final String DB_URL = "jdbc:sqlite:transactions.db";
 
     public static Connection connect() throws SQLException {
@@ -42,10 +41,21 @@ public class TransactionsDatabase {
                     "is_expense INTEGER NOT NULL)";
             stmt.execute(createRecurringTable);
 
+            String createBudgetTable = "CREATE TABLE IF NOT EXISTS budget (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "budget_limit REAL NOT NULL," +
+                    "year INTEGER NOT NULL," +
+                    "month INTEGER NOT NULL," +
+                    "UNIQUE(year, month)" +
+                    ")";
+            stmt.execute(createBudgetTable);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+    // =============== TRANSACTIONS ===============
 
     public static void clearTransactionsDatabase() {
         String deleteTransactions = "DELETE FROM transactions";
@@ -128,7 +138,7 @@ public class TransactionsDatabase {
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setDouble(1, rt.getAmount());  // 💥 This is likely where NULL was being passed
+            pstmt.setDouble(1, rt.getAmount());
             pstmt.setString(2, rt.getDescription());
             pstmt.setString(3, rt.getCategory().name());
             pstmt.setString(4, rt.getStartDate().toString());
@@ -256,7 +266,61 @@ public class TransactionsDatabase {
         return result;
     }
 
+   // =============== BUDGET ===============
 
+    public static void addBudget(double amount, int year, int month){
+        String sql = "INSERT INTO budget (budget_limit, year, month) VALUES (?, ?, ?)";
+
+        try (Connection conn = connect();
+            PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            pstmt.setDouble(1, amount);
+            pstmt.setInt(2, year);
+            pstmt.setInt(3, month);
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Double getBudgetAmount(int year, int month){
+        String sql = "SELECT * FROM budget WHERE year = ? AND month = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, year);
+            pstmt.setInt(2, month);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {  // Move to the first row; returns false if no row found
+                return rs.getDouble("budget_limit");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return -1.0; // if out is negative
+    }
+
+
+    public static void editBudgetLimit(double newLimit, int year, int month){
+        String updateBudgetSQL = "UPDATE budget SET budget_limit = ? WHERE year = ? AND month = ?";
+
+        try (Connection conn = connect();
+                PreparedStatement pstmt = conn.prepareStatement(updateBudgetSQL)) {
+
+            pstmt.setDouble(1, newLimit);   // newLimit is the new budget amount
+            pstmt.setInt(2, year);           // the year you want to update
+            pstmt.setInt(3, month);          // the month you want to update
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 

@@ -1,12 +1,15 @@
 package com.example.financeapp;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
 import java.util.Objects;
 
 public class FinanceApp extends Application {
@@ -17,7 +20,7 @@ public class FinanceApp extends Application {
     public void start(Stage stage) {
         AppController appController = new AppController();
 
-        TransactionsDatabase.init();
+        Database.init();
         appController.initialiseApp();
 
         TabPane tabPane = new TabPane();
@@ -34,13 +37,13 @@ public class FinanceApp extends Application {
         Tab forecast = appController.getForecastTab();
         Tab transactions = appController.getTransactionsTab();
         Tab recurringTransactions = appController.getRecurringTransactionsTab();
-        Tab accounts = appController.getAccountsTab();
 
-        stage.setOnCloseRequest(_ -> TransactionsDatabase.updateTransactionsDatabase(appController.transactions));
+        stage.setOnCloseRequest(_ -> Database.updateTransactionsDatabase(appController.transactions));
 
-        tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions, accounts);
+        tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions);
 
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+
 
         stage.setScene(scene);
         stage.show();

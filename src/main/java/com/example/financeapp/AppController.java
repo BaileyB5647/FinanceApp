@@ -1,6 +1,14 @@
 package com.example.financeapp;
 
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.stage.WindowEvent;
+import org.controlsfx.control.*;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -11,13 +19,14 @@ import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.shape.Line;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.util.*;
 
 public class AppController {
@@ -27,6 +36,8 @@ public class AppController {
 
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
     ObservableList<RecurringTransaction> recurringTransactions = FXCollections.observableArrayList();
+
+    SimpleDoubleProperty budgetLimit = new SimpleDoubleProperty(Database.getBudgetAmount(LocalDate.now().getYear(), LocalDate.now().getMonthValue()));
 
     public MenuBar getMenuBar(){
         MenuBar menuBar = new MenuBar();
@@ -46,8 +57,8 @@ public class AppController {
     }
 
     public void initialiseApp(){
-        transactions.addAll(TransactionsDatabase.loadTransactions());
-        recurringTransactions.addAll(TransactionsDatabase.loadRecurringTransactions());
+        transactions.addAll(Database.loadTransactions());
+        recurringTransactions.addAll(Database.loadRecurringTransactions());
     }
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
@@ -80,7 +91,6 @@ public class AppController {
         HBox monthBox = new HBox(monthLabel);
         monthBox.getStyleClass().add("monthBox");
 
-
         // Balance Title
         Label balanceTitle = new Label("Balance");
         balanceTitle.getStyleClass().add("sectionTitle");
@@ -99,7 +109,6 @@ public class AppController {
             protected String computeValue() {
                 double newBalance = getBalance(transactions); // <- Your method
                 NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
-
                 return formatter.format(newBalance);
             }
         };
@@ -143,31 +152,71 @@ public class AppController {
         budgetTitle.getStyleClass().add("sectionTitle");
         budgetTitleBox.getStyleClass().add("budgetTitleBox");
 
+
         // Budget Display Bar
-        ProgressBar budgetDisplayBar = new ProgressBar(0.5);
+        ProgressBar budgetDisplayBar = new ProgressBar();
         budgetDisplayBar.getStyleClass().add("budgetDisplayBar");
+        budgetDisplayBar.setMinHeight(50);
 
         budgetDisplayBar.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(budgetDisplayBar, Priority.ALWAYS);
 
 
         // Spent Data
-        Label spent      = new Label("Spent: ");
-        Label spentValue = new Label("£250.00");
-        HBox spentBox    = new HBox(spent, spentValue);
+        StringBinding spentStringBinding = new StringBinding() {
+            {   // Bind to changes in the transactions list
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double expenses = getExpenses(transactions) + getPlannedExpenses(transactions);
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                return formatter.format(expenses);
+            }
+        };
+
+        Label spent = new Label("Spent: ");
+        Label spentValueLabel = new Label();
+        spentValueLabel.textProperty().bind(spentStringBinding);
+
+        HBox spentBox = new HBox(spent, spentValueLabel);
 
         spent.getStyleClass().add("boldLabel");
-        spentValue.getStyleClass().add("standardLabel");
+        spentValueLabel.getStyleClass().add("standardLabel");
         spentBox.getStyleClass().add("spentBox");
 
 
         // Remaining Data
-        Label remaining      = new Label("Remaining: ");
-        Label remainingValue = new Label("£250.00");
-        HBox remainingBox    = new HBox(remaining, remainingValue);
+        StringBinding remainingStringBinding = new StringBinding() {
+            {   // Bind to changes in the transactions
+                bind(transactions);
+            }
+
+            @Override
+            protected String computeValue() {
+                Double remaining = budgetLimit.doubleValue() - (getExpenses(transactions) + getPlannedExpenses(transactions));
+                NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+                Double spent = budgetLimit.getValue() - remaining;
+
+
+                budgetDisplayBar.setProgress(spent / budgetLimit.getValue());
+
+                return formatter.format(remaining);
+            }
+        };
+
+
+        Label remaining = new Label("Remaining: ");
+        Label remainingValueLabel = new Label();
+        remainingValueLabel.textProperty().bind(remainingStringBinding);
+
+        HBox remainingBox = new HBox(remaining, remainingValueLabel);
 
         remaining.getStyleClass().add("boldLabel");
-        remainingValue.getStyleClass().add("standardLabel");
+        remainingValueLabel.getStyleClass().add("standardLabel");
         remainingBox.getStyleClass().add("remainingBox");
 
 
@@ -184,13 +233,12 @@ public class AppController {
         cardTwo.getStyleClass().add("card");
 
 
-        // - = - = - = - = - = - = - = - =
-        // Line Break
-        // - = - = - = - = - = - = - = - =
-
-        Line lineBreak = new Line();
-        lineBreak.setEndX(screenWidth);
-        lineBreak.getStyleClass().add("line");
+        cardTwo.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                newBudgetDialogue();
+            }
+        });
 
         // - = - = - = - = - = - = - = - =
         // Income Card
@@ -201,6 +249,7 @@ public class AppController {
 
         incomeLabel.getStyleClass().add("dataTitle");
         incomeLabelBox.getStyleClass().add("dataTitleBox");
+
 
 
         StringBinding incomeStringBinding = new StringBinding() {
@@ -225,7 +274,6 @@ public class AppController {
 
         HBox incomeValueBox = new HBox(incomeValue);
         incomeValueBox.getStyleClass().add("greenCard");
-
 
         // - = - = - = - = - = - = - = - =
         // Expenses Card
@@ -368,24 +416,24 @@ public class AppController {
         gridPane.setId("root");
 
         // Column Constraints
-        ColumnConstraints col0 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col1 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col2 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col3 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col4 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col5 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col6 = new ColumnConstraints(screenWidth/8);
-        ColumnConstraints col7 = new ColumnConstraints(screenWidth/8);
+        ColumnConstraints col0 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col1 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col2 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col3 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col4 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col5 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col6 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
+        ColumnConstraints col7 = new ColumnConstraints(100, screenWidth/8, screenWidth/8);
 
         // Row Constraints
-        RowConstraints row0 = new RowConstraints(screenHeight/8);
-        RowConstraints row1 = new RowConstraints(screenHeight/8);
-        RowConstraints row2 = new RowConstraints(screenHeight/8);
-        RowConstraints row3 = new RowConstraints(screenHeight/8);
-        RowConstraints row4 = new RowConstraints(screenHeight/8);
-        RowConstraints row5 = new RowConstraints(screenHeight/8);
-        RowConstraints row6 = new RowConstraints(screenHeight/8);
-        RowConstraints row7 = new RowConstraints(screenHeight/8);
+        RowConstraints row0 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row1 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row2 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row3 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row4 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row5 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row6 = new RowConstraints(65, screenHeight/8, screenHeight/8);
+        RowConstraints row7 = new RowConstraints(65, screenHeight/8, screenHeight/8);
 
         gridPane.getColumnConstraints().addAll(col0, col1, col2, col3, col4, col5, col6, col7);
         gridPane.getRowConstraints().addAll(row0, row1, row2, row3, row4, row5, row6, row7);
@@ -394,8 +442,6 @@ public class AppController {
 
         gridPane.add(cardOne,0, 0, 3, 3);
         gridPane.add(cardTwo,4, 0, 4, 3);
-
-        gridPane.add(lineBreak,0, 3, 8, 1);
 
         gridPane.add(incomeLabelBox,0, 4, 2, 1);
         gridPane.add(incomeValueBox,0, 5, 2, 2);
@@ -432,20 +478,6 @@ public class AppController {
      */
     public Tab getTransactionsTab() {
         // - = - = - = - = - = - = - = - =
-        // Add Transaction Button
-        // - = - = - = - = - = - = - = - =
-        Button addTransaction = new Button("Add Transaction");
-
-        addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
-        addTransaction.getStyleClass().add("transactionButton");
-
-        addTransaction.setOnAction(_ -> newTransactionDialogue());
-
-        HBox buttonsBox = new HBox(addTransaction);
-        buttonsBox.getStyleClass().add("buttonsBox");
-
-
-        // - = - = - = - = - = - = - = - =
         // Layout Containers
         // - = - = - = - = - = - = - = - =
 
@@ -480,12 +512,70 @@ public class AppController {
         header.getChildren().addAll(dateHeader, descHeader, amountHeader,  categoryHeader);
 
         // - = - = - = - = - = - = - = - =
+        // Transactions Sorted by Date
+        // - = - = - = - = - = - = - = - =
+
+        SortedList<Transaction> sortedTransactions = transactions.sorted(Comparator.comparing(Transaction::getDate));
+
+        // - = - = - = - = - = - = - = - =
+        // Month Selector
+        // - = - = - = - = - = - = - = - =
+        SearchableComboBox<Year> yearComboBox = new SearchableComboBox<>();
+        yearComboBox.setMaxSize(120, 30);
+        yearComboBox.getStyleClass().add("comboBox");
+
+        if (!sortedTransactions.isEmpty()) {
+            int startYear = sortedTransactions.getFirst().getDate().getYear();
+            int endYear = sortedTransactions.getLast().getDate().getYear();
+
+            for (int i = startYear; i <= endYear; i++) {
+                yearComboBox.getItems().add(Year.of(i));
+            }
+
+            yearComboBox.setValue(Year.of(LocalDate.now().getYear()));
+
+        }
+
+
+        SearchableComboBox<Month> monthComboBox = new SearchableComboBox<>();
+        monthComboBox.setValue(LocalDate.now().getMonth());
+
+        monthComboBox.setMaxSize(120, 30);
+
+        monthComboBox.getStyleClass().add("comboBox");
+        monthComboBox.getItems().addAll(Month.values());
+
+        ObservableList<Transaction> displayTransactions = FXCollections.observableArrayList();
+
+        for (Transaction transaction : transactions){
+            if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                    && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                    && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                displayTransactions.add(transaction);
+            }
+        }
+
+
+        // - = - = - = - = - = - = - = - =
+        // Add Transaction Button
+        // - = - = - = - = - = - = - = - =
+        Button addTransaction = new Button("Add Transaction");
+
+        addTransaction.setPrefSize(screenWidth/6, screenHeight/12);
+        addTransaction.getStyleClass().add("transactionButton");
+
+        addTransaction.setOnAction(_ -> newTransactionDialogue());
+
+        HBox buttonsBox = new HBox(addTransaction, yearComboBox, monthComboBox);
+        buttonsBox.getStyleClass().add("buttonsBox");
+
+        // - = - = - = - = - = - = - = - =
         // ListView Setup
         // - = - = - = - = - = - = - = - =
         ListView<Transaction> transactionListView = new ListView<>();
         transactionListView.getStyleClass().add("listView");
 
-        transactionListView.setItems(transactions);
+        transactionListView.setItems(displayTransactions);
 
         transactionListView.setCellFactory(_ -> new ListCell<>() {
             @Override
@@ -518,6 +608,58 @@ public class AppController {
                     HBox row = new HBox(10, dateLabel, nameLabel, amountLabel, categoryLabel);
 
                     setGraphic(row);
+                }
+            }
+        });
+
+        transactions.addListener(new ListChangeListener<Transaction>() {
+            @Override
+            public void onChanged(Change<? extends Transaction> c) {
+                displayTransactions.clear();
+                transactionListView.getItems().clear();
+
+                if (yearComboBox.getValue() == null && !transactions.isEmpty()) {
+                    yearComboBox.setValue(Year.of(transactions.getFirst().getDate().getYear())); // will trigger the listener of year
+                } else {
+                    for (Transaction transaction : transactions){
+                        if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                                && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                                && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                            displayTransactions.add(transaction);
+                        }
+                    }
+                }
+            }
+        });
+
+        yearComboBox.valueProperty().addListener(new ChangeListener<Year>() {
+            @Override
+            public void changed(ObservableValue<? extends Year> observable, Year oldValue, Year newValue) {
+                transactionListView.getItems().clear();
+                displayTransactions.clear();
+
+                for (Transaction transaction : transactions){
+                    if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                            && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                            && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                        displayTransactions.add(transaction);
+                    }
+                }
+            }
+        });
+
+        monthComboBox.valueProperty().addListener(new ChangeListener<Month>() {
+            @Override
+            public void changed(ObservableValue<? extends Month> observable, Month oldValue, Month newValue) {
+                transactionListView.getItems().clear();
+                displayTransactions.clear();
+
+                for (Transaction transaction : transactions){
+                    if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                            && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                            && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                        displayTransactions.add(transaction);
+                    }
                 }
             }
         });
@@ -574,35 +716,75 @@ public class AppController {
         xAxis.setLabel("Date");
         yAxis.setLabel("Amount");
 
-        // Convert LocalDate to String for CategoryAxis
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Transactions");
-
-
+        series.setName("Balance");
 
         SortedList<Transaction> sortedList = transactions.sorted(Comparator.comparing(Transaction::getDate));
 
+        LocalDate previousDate = null;
+        double runningBalance = 0.0;
+
         for (Transaction transaction : sortedList) {
-            String dateStr = transaction.getDate().toString();
-            series.getData().add(new XYChart.Data<>(dateStr, transaction.getAmount()));
+            LocalDate currentDate = transaction.getDate();
+
+            // If we're still on the same date, just update the balance
+            if (currentDate.equals(previousDate)) {
+                runningBalance += transaction.isExpense() ? -transaction.getAmount() : transaction.getAmount();
+            } else {
+                // If it's a new date and not the first iteration, add the previous date's balance
+                if (previousDate != null) {
+                    series.getData().add(new XYChart.Data<>(previousDate.toString(), runningBalance));
+                }
+
+                // Update running balance for the new date
+                runningBalance += transaction.isExpense() ? -transaction.getAmount() : transaction.getAmount();
+                previousDate = currentDate;
+            }
+        }
+
+        // Add the final date's balance after loop ends
+        if (previousDate != null) {
+            series.getData().add(new XYChart.Data<>(previousDate.toString(), runningBalance));
         }
 
         // Create chart
         LineChart<String, Number> chart = new LineChart<>(new CategoryAxis(), yAxis);
         chart.getData().add(series);
-        chart.setTitle("Transaction Forecast");
+        chart.setTitle("Balance Forecast");
 
 
         transactions.addListener((ListChangeListener<Transaction>) _ -> {
             chart.getData().clear();
             series.getData().clear();
-            SortedList<Transaction> sortedList1 = transactions.sorted(Comparator.comparing(Transaction::getDate));
 
-            for (Transaction transaction : sortedList1) {
-                String dateStr = transaction.getDate().toString();
-                series.getData().add(new XYChart.Data<>(dateStr, transaction.getAmount()));
+            LocalDate previousDate1 = null;
+            double runningBalance1 = 0.0;
 
+            for (Transaction transaction : sortedList) {
+                LocalDate currentDate = transaction.getDate();
+
+                // If we're still on the same date, just update the balance
+                if (currentDate.equals(previousDate1)) {
+                    runningBalance1 += transaction.isExpense() ? -transaction.getAmount() : transaction.getAmount();
+                } else {
+                    // If it's a new date and not the first iteration, add the previous date's balance
+                    if (previousDate1 != null) {
+                        series.getData().add(new XYChart.Data<>(previousDate1.toString(), runningBalance1));
+                    }
+
+                    // Update running balance for the new date
+                    runningBalance1 += transaction.isExpense() ? -transaction.getAmount() : transaction.getAmount();
+                    previousDate1 = currentDate;
+                }
             }
+
+            // Add the final date's balance after loop ends
+            if (previousDate1 != null) {
+                series.getData().add(new XYChart.Data<>(previousDate1.toString(), runningBalance1));
+            }
+
+
+
             chart.getData().add(series);
         });
 
@@ -611,23 +793,9 @@ public class AppController {
     }
 
     /**
-     * Creates and returns the accounts tab for the application UI.
-     *
-     * @return the {@link Tab} containing the complete accounts tab layout and content
-     */
-    public Tab getAccountsTab(){
-        Tab accountsTab = new Tab("Accounts");
-        accountsTab.setClosable(false);
-
-
-
-        return accountsTab;
-    }
-
-    /**
      * Creates and returns the recurring transactions tab for the application UI.
      * <p>
-     * This tab displays a list of the user's active recurring transactions
+     * This tab displays a list of the user's active recurri    ng transactions
      * and provides the user with the ability to edit/delete active recurring transactions.
      *
      * @return the {@link Tab} containing the complete recurring transactions layout and content
@@ -821,7 +989,6 @@ public class AppController {
         // === Form Fields ===
         DatePicker datePicker = new DatePicker(transaction.getDate());
 
-
         TextField descriptionField = new TextField(transaction.getDescription());
 
         ChoiceBox<Category> categories = new ChoiceBox<>();
@@ -852,7 +1019,7 @@ public class AppController {
             transactions.addLast(temp);
             transactions.removeLast();
 
-            TransactionsDatabase.updateTransactionsDatabase(transactions);
+            Database.updateTransactionsDatabase(transactions);
 
         });
 
@@ -874,7 +1041,7 @@ public class AppController {
                 // User clicked Yes
                 transactions.remove(transaction);
 
-                TransactionsDatabase.updateTransactionsDatabase(transactions);
+                Database.updateTransactionsDatabase(transactions);
 
                 gridPane.getChildren().clear();
             }
@@ -997,7 +1164,7 @@ public class AppController {
             } else {
                 listView.refresh();
 
-                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+                Database.updateRecurringTransactionsDatabase(recurringTransactions);
             }
         });
 
@@ -1021,23 +1188,23 @@ public class AppController {
                 // User clicked Yes
                 recurringTransactions.remove(transaction);
 
-                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+                Database.updateRecurringTransactionsDatabase(recurringTransactions);
 
                 transactions.removeIf(transaction1 -> Objects.equals(transaction1.getRecurringId(), transaction.getId()));
 
-                TransactionsDatabase.updateTransactionsDatabase(transactions);
+                Database.updateTransactionsDatabase(transactions);
 
 
                 gridPane.getChildren().clear();
             } else if (result.isPresent() && result.get() == futureButton){
                 recurringTransactions.remove(transaction);
 
-                TransactionsDatabase.updateRecurringTransactionsDatabase(recurringTransactions);
+                Database.updateRecurringTransactionsDatabase(recurringTransactions);
 
                 transactions.removeIf(transaction1 -> (Objects.equals(transaction1.getRecurringId(), transaction.getId()) &&
                         transaction1.getDate().isAfter(LocalDate.now())));
 
-                TransactionsDatabase.updateTransactionsDatabase(transactions);
+                Database.updateTransactionsDatabase(transactions);
 
                 gridPane.getChildren().clear();
             }
@@ -1135,7 +1302,6 @@ public class AppController {
         return monthlyPlannedExpenses;
     }
 
-
     /**
      * Calculates the net cashflow for the current month.
      * <p>
@@ -1174,7 +1340,6 @@ public class AppController {
         return runningBalance;
     }
 
-
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
     //                        DIALOGUE METHODS                      \\
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
@@ -1184,7 +1349,7 @@ public class AppController {
      * <p>
      * The form includes fields for transaction type (expense/income), date, description, category, and amount.
      * Upon confirmation and validation, the transaction is added to the observable transaction list
-     * and persisted to the {@link TransactionsDatabase}.
+     * and persisted to the {@link Database}.
      * <p>
      * Displays error alerts if any required fields are empty or invalid.
      */
@@ -1284,7 +1449,7 @@ public class AppController {
             } else {
                 Transaction newTransaction = new Transaction(category, startDate, description, transactionAmount, isExpense);
                 transactions.add(newTransaction);
-                TransactionsDatabase.addTransaction(newTransaction);
+                Database.addTransaction(newTransaction);
                 dialog.close();
             }
 
@@ -1310,7 +1475,7 @@ public class AppController {
      * <p>
      * The form includes fields for transaction type (expense/income), start date, end date, description, frequency,
      * category, and amount. Upon confirmation and validation, the transaction is added to the observable transaction list
-     * and persisted to the {@link TransactionsDatabase}.
+     * and persisted to the {@link Database}.
      * <p>
      * Displays error alerts if any required fields are empty or invalid.
      */
@@ -1432,15 +1597,15 @@ public class AppController {
                 }
 
                 recurringTransactions.add(newTransaction);
-                TransactionsDatabase.addRecurringTransaction(newTransaction);
+                Database.addRecurringTransaction(newTransaction);
 
 // Only generate future transactions for the new one!
-                List<Transaction> future = TransactionsDatabase.generateFutureTransactions(
+                List<Transaction> future = Database.generateFutureTransactions(
                         List.of(newTransaction), LocalDate.now(), LocalDate.now().plusYears(1)
                 );
                 transactions.addAll(future);
 
-                TransactionsDatabase.updateTransactionsDatabase(transactions);
+                Database.updateTransactionsDatabase(transactions);
                 dialog.close();
             }
 
@@ -1460,6 +1625,93 @@ public class AppController {
         dialog.setOnShown(_ -> dialog.centerOnScreen());
         dialog.show();
     }
+
+    /**
+     * Launches a modal dialog allowing the user to edit the budget limit for that month.
+     */
+    public void newBudgetDialogue(){
+        Stage newStage = new Stage();
+        newStage.initModality(Modality.APPLICATION_MODAL);
+        newStage.setTitle("Budget Limit");
+
+
+        // === xxx ===
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setId("root");
+        borderPane.setMinSize(420, 120);
+        borderPane.setPrefSize(420, 180);
+
+        Label budgetLimitLabel = new Label("Budget Limit: ");
+        budgetLimitLabel.getStyleClass().add("standardLabel");
+
+        Region spacer = new Region();
+        spacer.setMinWidth(30);
+        spacer.setMaxWidth(100);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Spinner<Double> limitSpinner;
+
+        if (budgetLimit.doubleValue() != -1.0){
+            limitSpinner = new Spinner<>(0.0, Double.MAX_VALUE, budgetLimit.doubleValue(), 0.01);
+        } else {
+            limitSpinner = new Spinner<>(0.0, Double.MAX_VALUE, 0.0, 0.01);
+        }
+
+        limitSpinner.setEditable(true);
+        limitSpinner.getStyleClass().addAll("entryField");
+
+        HBox limitBox = new HBox(budgetLimitLabel, spacer, limitSpinner);
+        limitBox.getStyleClass().add("fieldBox");
+
+        // === Buttons ===
+        Button confirm = new Button("Confirm");
+        confirm.getStyleClass().addAll("button", "confirm");
+
+        confirm.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (budgetLimit.doubleValue() == -1.0){
+                    Database.addBudget(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+                } else {
+                    Database.editBudgetLimit(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+                }
+                budgetLimit.set(limitSpinner.getValue());
+                newStage.close();
+            }
+        });
+
+        Button cancel = new Button("Cancel");
+        cancel.getStyleClass().addAll("button", "cancel");
+
+        cancel.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                newStage.close();
+            }
+        });
+
+        HBox buttonsBox = new HBox(confirm, cancel);
+        buttonsBox.getStyleClass().add("buttonsBox");
+
+        // === vSpacer ===
+        Region vSpacer = new Region();
+        vSpacer.setMinHeight(30);
+        vSpacer.setMaxHeight(70);
+        VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+        // === UI Setup ===
+        VBox UIBox = new VBox(limitBox, vSpacer, buttonsBox);
+
+        borderPane.setCenter(UIBox);
+
+        Scene scene = new Scene(borderPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+
+        newStage.setScene(scene);
+        newStage.show();
+    }
+
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
     //                   DIALOGUE HELPER METHODS                    \\
@@ -1490,7 +1742,6 @@ public class AppController {
         grid.add(inputBox, 1, rowIndex);
     }
 
-
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
     //                     OTHER HELPER METHODS                     \\
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
@@ -1507,5 +1758,7 @@ public class AppController {
         label.setMinWidth(width);
         return label;
     }
+
+
 
 }
