@@ -8,9 +8,12 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class Database {
     private static final String DB_URL = "jdbc:sqlite:transactions.db";
+    private static final Logger LOGGER = Logger.getLogger(Database.class.getName());
 
     public static Connection connect() throws SQLException {
         return DriverManager.getConnection(DB_URL);
@@ -51,7 +54,7 @@ public class Database {
             stmt.execute(createBudgetTable);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -68,7 +71,7 @@ public class Database {
             stmt.executeUpdate(resetSeq);
             conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -99,7 +102,7 @@ public class Database {
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -124,7 +127,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
 
         return transactions;
@@ -156,7 +159,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -187,7 +190,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
 
         return list;
@@ -211,7 +214,7 @@ public class Database {
             stmt.executeUpdate(resetSeq);
             conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -281,7 +284,7 @@ public class Database {
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 
@@ -317,7 +320,7 @@ public class Database {
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Database error occurred", e);
         }
     }
 

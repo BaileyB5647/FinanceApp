@@ -5,9 +5,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.stage.WindowEvent;
 import org.controlsfx.control.*;
 
 import javafx.collections.FXCollections;
@@ -63,12 +60,12 @@ public class AppController {
     public Scene setupScene(Pane root){
         Scene scene = new Scene(root);
 
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(getActiveStylesheet()).toExternalForm()));
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(getActiveStylesheet())).toExternalForm());
 
-        activeStyleSheet.addListener(new ChangeListener<String>() {
+        activeStyleSheet.addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                scene.getStylesheets().setAll(Objects.requireNonNull(getClass().getResource(getActiveStylesheet()).toExternalForm()));
+                scene.getStylesheets().setAll(Objects.requireNonNull(getClass().getResource(getActiveStylesheet())).toExternalForm());
             }
         });
 
@@ -114,11 +111,11 @@ public class AppController {
         newRecurringTransaction.setOnAction(_ -> newRecurringTransactionDialogue());
 
         newMenu.getItems().addAll(newTransaction, newRecurringTransaction);
-
         menuBar.getMenus().addAll(settingsMenu, newMenu);
 
         return menuBar;
     }
+
 
 
 
@@ -140,12 +137,7 @@ public class AppController {
         ComboBox<Theme> themeSelector = new ComboBox<>();
         themeSelector.getItems().addAll(Theme.values());
 
-        themeSelector.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Theme>() {
-            @Override
-            public void changed(ObservableValue<? extends Theme> observable, Theme oldValue, Theme newValue) {
-                activeStyleSheet.set(newValue.getSheetName());
-            }
-        });
+        themeSelector.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> activeStyleSheet.set(newValue.getSheetName()));
 
         themeSelector.setValue(Theme.getTheme(activeStyleSheet.getValue()));
 
@@ -182,7 +174,7 @@ public class AppController {
      * <ul>
      *     <li>Current balance for the selected month</li>
      *     <li>Budget usage with progress indicator</li>
-     *     <li>Income, expenses, planned expenses, and net cashflow</li>
+     *     <li>Income, expenses, planned expenses, and net cash flow</li>
      * </ul>
      * Each section is visually represented using styled cards and updated dynamically based on
      * the list of transactions. The dashboard also includes a button to add a new transaction.
@@ -343,12 +335,7 @@ public class AppController {
         cardTwo.getStyleClass().add("card");
 
 
-        cardTwo.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                newBudgetDialogue();
-            }
-        });
+        cardTwo.setOnMouseClicked(_ -> newBudgetDialogue());
 
         // - = - = - = - = - = - = - = - =
         // Income Card
@@ -456,14 +443,14 @@ public class AppController {
 
 
         // - = - = - = - = - = - = - = - =
-        // Net Cashflow Card
+        // Net Cash Flow Card
         // - = - = - = - = - = - = - = - =
 
-        Label netCashflowLabel   = new Label("Net Cashflow");
-        HBox netCashflowLabelBox = new HBox(netCashflowLabel);
+        Label netCashFlowLabel   = new Label("Net Cash Flow");
+        HBox netCashFlowLabelBox = new HBox(netCashFlowLabel);
 
-        netCashflowLabel.getStyleClass().add("dataTitle");
-        netCashflowLabelBox.getStyleClass().add("centerBox");
+        netCashFlowLabel.getStyleClass().add("dataTitle");
+        netCashFlowLabelBox.getStyleClass().add("centerBox");
 
 
         StringBinding netCashflowStringBinding = new StringBinding() {
@@ -473,7 +460,7 @@ public class AppController {
 
             @Override
             protected String computeValue() {
-                Double expenses = getNetCashflow(transactions);
+                Double expenses = getNetCashFlow(transactions);
                 NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
                 return formatter.format(expenses);
@@ -481,25 +468,25 @@ public class AppController {
         };
 
 
-        Label netCashflowValue = new Label();
-        netCashflowValue.textProperty().bind(netCashflowStringBinding);
+        Label netCashFlowValue = new Label();
+        netCashFlowValue.textProperty().bind(netCashflowStringBinding);
 
-        netCashflowValue.getStyleClass().add("valueLabel");
-        netCashflowValue.setId("white");
+        netCashFlowValue.getStyleClass().add("valueLabel");
+        netCashFlowValue.setId("white");
 
-        HBox netCashflowValueBox = new HBox(netCashflowValue);
+        HBox netCashFlowValueBox = new HBox(netCashFlowValue);
 
-        // Conditional Styling for the Net Cashflow Card:
+        // Conditional Styling for the Net Cash Flow Card:
 
-        if (getNetCashflow(transactions) >= 0) { netCashflowValueBox.getStyleClass().add("greenCard"); }
-        else { netCashflowValueBox.getStyleClass().add("redCard"); }
+        if (getNetCashFlow(transactions) >= 0) { netCashFlowValueBox.getStyleClass().add("greenCard"); }
+        else { netCashFlowValueBox.getStyleClass().add("redCard"); }
 
         // For any changes in the string binding, check to see if style needs to be updated
         netCashflowStringBinding.addListener((_) -> {
-            netCashflowValueBox.getStyleClass().clear();
+            netCashFlowValueBox.getStyleClass().clear();
 
-            if (getNetCashflow(transactions) >= 0) { netCashflowValueBox.getStyleClass().add("greenCard"); }
-            else { netCashflowValueBox.getStyleClass().add("redCard"); }
+            if (getNetCashFlow(transactions) >= 0) { netCashFlowValueBox.getStyleClass().add("greenCard"); }
+            else { netCashFlowValueBox.getStyleClass().add("redCard"); }
         });
 
 
@@ -562,8 +549,8 @@ public class AppController {
         gridPane.add(plannedExpensesLabelBox,4, 4, 2, 1);
         gridPane.add(plannedExpensesValueBox,4, 5, 2, 2);
 
-        gridPane.add(netCashflowLabelBox,6, 4, 2, 1);
-        gridPane.add(netCashflowValueBox,6, 5, 2, 2);
+        gridPane.add(netCashFlowLabelBox,6, 4, 2, 1);
+        gridPane.add(netCashFlowValueBox,6, 5, 2, 2);
 
         gridPane.add(buttonsBox,3, 7, 2, 1);
 
@@ -721,32 +708,13 @@ public class AppController {
             }
         });
 
-        transactions.addListener(new ListChangeListener<Transaction>() {
-            @Override
-            public void onChanged(Change<? extends Transaction> c) {
-                displayTransactions.clear();
-                transactionListView.getItems().clear();
+        transactions.addListener((ListChangeListener<Transaction>) _ -> {
+            displayTransactions.clear();
+            transactionListView.getItems().clear();
 
-                if (yearComboBox.getValue() == null && !transactions.isEmpty()) {
-                    yearComboBox.setValue(Year.of(transactions.getFirst().getDate().getYear())); // will trigger the listener of year
-                } else {
-                    for (Transaction transaction : transactions){
-                        if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
-                                && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
-                                && transaction.getDate().getMonth() == monthComboBox.getValue()){
-                            displayTransactions.add(transaction);
-                        }
-                    }
-                }
-            }
-        });
-
-        yearComboBox.valueProperty().addListener(new ChangeListener<Year>() {
-            @Override
-            public void changed(ObservableValue<? extends Year> observable, Year oldValue, Year newValue) {
-                transactionListView.getItems().clear();
-                displayTransactions.clear();
-
+            if (yearComboBox.getValue() == null && !transactions.isEmpty()) {
+                yearComboBox.setValue(Year.of(transactions.getFirst().getDate().getYear())); // will trigger the listener of year
+            } else {
                 for (Transaction transaction : transactions){
                     if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
                             && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
@@ -757,18 +725,28 @@ public class AppController {
             }
         });
 
-        monthComboBox.valueProperty().addListener(new ChangeListener<Month>() {
-            @Override
-            public void changed(ObservableValue<? extends Month> observable, Month oldValue, Month newValue) {
-                transactionListView.getItems().clear();
-                displayTransactions.clear();
+        yearComboBox.valueProperty().addListener((_) -> {
+            transactionListView.getItems().clear();
+            displayTransactions.clear();
 
-                for (Transaction transaction : transactions){
-                    if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
-                            && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
-                            && transaction.getDate().getMonth() == monthComboBox.getValue()){
-                        displayTransactions.add(transaction);
-                    }
+            for (Transaction transaction : transactions){
+                if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                        && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                        && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                    displayTransactions.add(transaction);
+                }
+            }
+        });
+
+        monthComboBox.valueProperty().addListener((_) -> {
+            transactionListView.getItems().clear();
+            displayTransactions.clear();
+
+            for (Transaction transaction : transactions){
+                if (yearComboBox.getValue() != null && monthComboBox.getValue() != null
+                        && transaction.getDate().getYear() == yearComboBox.getValue().getValue()
+                        && transaction.getDate().getMonth() == monthComboBox.getValue()){
+                    displayTransactions.add(transaction);
                 }
             }
         });
@@ -904,7 +882,7 @@ public class AppController {
     /**
      * Creates and returns the recurring transactions tab for the application UI.
      * <p>
-     * This tab displays a list of the user's active recurri    ng transactions
+     * This tab displays a list of the user's active recurring transactions
      * and provides the user with the ability to edit/delete active recurring transactions.
      *
      * @return the {@link Tab} containing the complete recurring transactions layout and content
@@ -1104,10 +1082,11 @@ public class AppController {
 
         TextField descriptionField = new TextField(transaction.getDescription());
 
-        ComboBox<Category> categories = new ComboBox<>();
+        SearchableComboBox<Category> categories = new SearchableComboBox<>();
+        categories.setEditable(true);
         categories.setValue(transaction.getCategory());
         categories.getItems().addAll(Category.values());
-        categories.setPrefWidth(screenWidth / 5);
+        categories.setMaxSize(screenWidth / 5, screenHeight / 19);
         categories.getStyleClass().add("centerBox");
 
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
@@ -1251,10 +1230,11 @@ public class AppController {
 
         TextField descriptionField = new TextField(transaction.getDescription());
 
-        ComboBox<Category> categories = new ComboBox<>();
+        SearchableComboBox<Category> categories = new SearchableComboBox<>();
+        categories.setEditable(true);
         categories.setValue(transaction.getCategory());
         categories.getItems().addAll(Category.values());
-        categories.setPrefWidth(screenWidth / 5);
+        categories.setMaxSize(screenWidth / 5, screenHeight /19);
         categories.getStyleClass().add("centerBox");
 
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
@@ -1416,15 +1396,15 @@ public class AppController {
     }
 
     /**
-     * Calculates the net cashflow for the current month.
+     * Calculates the net cash flow for the current month.
      * <p>
-     * Net cashflow is computed as the total income minus both actual and planned expenses
+     * Net cash flow is computed as the total income minus both actual and planned expenses
      * for the current month.
      *
      * @param transactions the list of all {@link Transaction} objects to evaluate
-     * @return the net cashflow as a {@link Double} for the current month
+     * @return the net cash flow as a {@link Double} for the current month
      */
-    private Double getNetCashflow(ObservableList<Transaction> transactions){
+    private Double getNetCashFlow(ObservableList<Transaction> transactions){
         return getIncome(transactions) - (getExpenses(transactions) + getPlannedExpenses(transactions));
     }
 
@@ -1525,9 +1505,10 @@ public class AppController {
         addLabeledField(gridPane, "Description:", descriptionField, 2);
 
         // === Category ComboBox ===
-        ComboBox<Category> categories = new ComboBox<>();
+        SearchableComboBox<Category> categories = new SearchableComboBox<>();
+        categories.setEditable(true);
         categories.getItems().addAll(Category.values());
-        categories.setPrefWidth(screenWidth / 5);
+        categories.setMaxSize(screenWidth / 5, screenHeight / 19);
         categories.getStyleClass().add("centerBox");
         addLabeledField(gridPane, "Category:", categories, 3);
 
@@ -1654,9 +1635,10 @@ public class AppController {
         addLabeledField(gridPane, "Description:", descriptionField, 3);
 
         // === Category ComboBox ===
-        ComboBox<Category> categories = new ComboBox<>();
+        SearchableComboBox<Category> categories = new SearchableComboBox<>();
+        categories.setEditable(true);
         categories.getItems().addAll(Category.values());
-        categories.setPrefWidth(screenWidth / 5);
+        categories.setMaxSize(screenWidth / 5, screenHeight /19);
         categories.getStyleClass().add("centerBox");
         addLabeledField(gridPane, "Category:", categories, 4);
 
@@ -1778,34 +1760,26 @@ public class AppController {
         Button confirm = new Button("Confirm");
         confirm.getStyleClass().addAll("button", "confirm");
 
-        confirm.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (budgetLimit.doubleValue() == -1.0){
-                    Database.addBudget(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
-                } else {
-                    Database.editBudgetLimit(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
-                }
-                budgetLimit.set(limitSpinner.getValue());
-
-                Transaction temp = new Transaction(Category.Groceries, LocalDate.now(), "Temp", 0.0, true );
-
-                transactions.addLast(temp);
-                transactions.removeLast();
-
-                newStage.close();
+        confirm.setOnAction(_ -> {
+            if (budgetLimit.doubleValue() == -1.0){
+                Database.addBudget(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+            } else {
+                Database.editBudgetLimit(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
             }
+            budgetLimit.set(limitSpinner.getValue());
+
+            Transaction temp = new Transaction(Category.Groceries, LocalDate.now(), "Temp", 0.0, true );
+
+            transactions.addLast(temp);
+            transactions.removeLast();
+
+            newStage.close();
         });
 
         Button cancel = new Button("Cancel");
         cancel.getStyleClass().addAll("button", "cancel");
 
-        cancel.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                newStage.close();
-            }
-        });
+        cancel.setOnAction(_ -> newStage.close());
 
         HBox buttonsBox = new HBox(confirm, cancel);
         buttonsBox.getStyleClass().add("buttonsBox");

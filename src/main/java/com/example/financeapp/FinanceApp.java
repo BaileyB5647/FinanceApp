@@ -1,16 +1,12 @@
 package com.example.financeapp;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-
-import java.util.Objects;
 
 public class FinanceApp extends Application {
     private final double screenWidth = Screen.getPrimary().getBounds().getWidth();
@@ -43,12 +39,7 @@ public class FinanceApp extends Application {
 
         Scene scene = appController.setupScene(root);
 
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                ThemeManager.saveTheme(appController.getActiveStylesheet());
-            }
-        });
+        stage.setOnCloseRequest(_ -> ThemeManager.saveTheme(appController.getActiveStylesheet()));
 
         stage.setScene(scene);
         stage.show();

@@ -8,7 +8,7 @@ public class RecurringTransaction {
     private Category category;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Frequency frequency;
+    private final Frequency frequency;
     private boolean isExpense;
     private int recurringID;
 
@@ -78,10 +78,6 @@ public class RecurringTransaction {
 
     public Frequency getFrequency() {
         return frequency;
-    }
-
-    public void setFrequency(Frequency frequency) {
-        this.frequency = frequency;
     }
 
     public boolean isExpense() {
