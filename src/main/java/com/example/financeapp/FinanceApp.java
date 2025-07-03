@@ -14,9 +14,11 @@ public class FinanceApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        Database.init();
+
         AppController appController = new AppController();
         stage.setTitle("Finance App");
-        Database.init();
+
         appController.initialiseApp();
 
         TabPane tabPane = new TabPane();

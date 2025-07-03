@@ -44,6 +44,7 @@ public class AppController {
      * from the database and populating the respective collections.
      */
     public void initialiseApp(){
+
         transactions.addAll(Database.loadTransactions());
         recurringTransactions.addAll(Database.loadRecurringTransactions());
     }
@@ -620,7 +621,8 @@ public class AppController {
         SearchableComboBox<Year> yearComboBox = new SearchableComboBox<>();
         yearComboBox.setMaxSize(120, 30);
         yearComboBox.getStyleClass().add("comboBox");
-        if (!sortedTransactions.isEmpty()) {
+
+        if (!transactions.isEmpty()) {
             int startYear = sortedTransactions.getFirst().getDate().getYear();
             int endYear = sortedTransactions.getLast().getDate().getYear();
 
@@ -628,10 +630,35 @@ public class AppController {
                 yearComboBox.getItems().add(Year.of(i));
             }
 
-            yearComboBox.setValue(Year.of(LocalDate.now().getYear()));
-
+            if (!yearComboBox.getItems().isEmpty()){
+                yearComboBox.getSelectionModel().selectFirst();
+            }
         }
 
+        transactions.addListener(new ListChangeListener<Transaction>() {
+            @Override
+            public void onChanged(Change<? extends Transaction> c) {
+                if (!yearComboBox.getItems().isEmpty()){
+                    yearComboBox.getSelectionModel().clearSelection();
+                    yearComboBox.getItems().clear();
+                }
+
+                if (!transactions.isEmpty()) {
+                    int startYear = sortedTransactions.getFirst().getDate().getYear();
+                    int endYear = sortedTransactions.getLast().getDate().getYear();
+
+                    for (int i = startYear; i <= endYear; i++) {
+                        yearComboBox.getItems().add(Year.of(i));
+                    }
+
+
+                    if (!yearComboBox.getItems().isEmpty()){
+                        yearComboBox.getSelectionModel().selectFirst();
+                    }
+                }
+
+            }
+        });
 
         SearchableComboBox<Month> monthComboBox = new SearchableComboBox<>();
         monthComboBox.setValue(LocalDate.now().getMonth());
@@ -1279,24 +1306,25 @@ public class AppController {
 
             if (result.isPresent() && result.get() == allButton) {
                 // User clicked Yes
+
+                if (!transactions.isEmpty()){
+                    transactions.removeIf(transaction1 -> transaction1.getRecurringId().intValue() == transaction.getId().intValue());
+                }
+
                 recurringTransactions.remove(transaction);
 
+
                 Database.updateRecurringTransactionsDatabase(recurringTransactions);
-
-                transactions.removeIf(transaction1 -> Objects.equals(transaction1.getRecurringId(), transaction.getId()));
-
                 Database.updateTransactionsDatabase(transactions);
 
 
                 gridPane.getChildren().clear();
             } else if (result.isPresent() && result.get() == futureButton){
-                recurringTransactions.remove(transaction);
+                transactions.removeIf(transaction1 -> (transaction1.getRecurringId().intValue() == transaction.getId().intValue()) &&
+                        transaction1.getDate().isAfter(LocalDate.now()));
+
 
                 Database.updateRecurringTransactionsDatabase(recurringTransactions);
-
-                transactions.removeIf(transaction1 -> (Objects.equals(transaction1.getRecurringId(), transaction.getId()) &&
-                        transaction1.getDate().isAfter(LocalDate.now())));
-
                 Database.updateTransactionsDatabase(transactions);
 
                 gridPane.getChildren().clear();

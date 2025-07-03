@@ -77,8 +77,10 @@ public class Database {
 
     public static void updateTransactionsDatabase(ObservableList<Transaction> transactions) {
         clearTransactionsDatabase();
-        for (Transaction t : transactions) {
-            addTransaction(t);
+        if (!transactions.isEmpty()){
+            for (Transaction t : transactions) {
+                addTransaction(t);
+            }
         }
     }
 
@@ -182,9 +184,13 @@ public class Database {
                 Frequency frequency = Frequency.valueOf(rs.getString("frequency"));
                 boolean isExpense = rs.getInt("is_expense") == 1;
 
+
+
                 RecurringTransaction rt = (end != null)
                         ? new RecurringTransaction(amount, description, category, start, end, frequency, isExpense)
                         : new RecurringTransaction(amount, description, category, start, frequency, isExpense);
+
+                rt.setId(rs.getInt("id"));
 
                 list.add(rt);
             }
@@ -198,8 +204,11 @@ public class Database {
 
     public static void updateRecurringTransactionsDatabase(ObservableList<RecurringTransaction> transactions) {
         clearRecurringDatabase();
-        for (RecurringTransaction t : transactions) {
-            addRecurringTransaction(t);
+
+        if (!transactions.isEmpty()){
+            for (RecurringTransaction t : transactions) {
+                addRecurringTransaction(t);
+            }
         }
     }
 
@@ -256,7 +265,6 @@ public class Database {
 
                 // Step to next date
                 switch (rt.getFrequency()) {
-                    case Daily -> next = next.plusDays(1);
                     case Weekly -> next = next.plusWeeks(1);
                     case Biweekly -> next = next.plusWeeks(2);
                     case Monthly -> next = next.plusMonths(1);
