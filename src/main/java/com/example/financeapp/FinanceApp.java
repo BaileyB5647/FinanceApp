@@ -28,7 +28,6 @@ public class FinanceApp extends Application {
         root.setCenter(tabPane);
         root.setTop(appController.getMenuBar());
 
-        Scene scene = new Scene(root);
 
         root.setPrefWidth(screenWidth);
         root.setPrefHeight(screenHeight);
@@ -42,8 +41,7 @@ public class FinanceApp extends Application {
 
         tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions);
 
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
-
+        Scene scene = appController.setupScene(root);
 
         stage.setScene(scene);
         stage.show();

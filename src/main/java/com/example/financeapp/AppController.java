@@ -2,6 +2,7 @@ package com.example.financeapp;
 
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -34,10 +35,36 @@ public class AppController {
     private final double screenWidth = Screen.getPrimary().getBounds().getWidth() - 100;
     private final double screenHeight = Screen.getPrimary().getBounds().getHeight() - 240;
 
-    ObservableList<Transaction> transactions = FXCollections.observableArrayList();
-    ObservableList<RecurringTransaction> recurringTransactions = FXCollections.observableArrayList();
+    public ObservableList<Transaction> transactions = FXCollections.observableArrayList();
+    public ObservableList<RecurringTransaction> recurringTransactions = FXCollections.observableArrayList();
 
-    SimpleDoubleProperty budgetLimit = new SimpleDoubleProperty(Database.getBudgetAmount(LocalDate.now().getYear(), LocalDate.now().getMonthValue()));
+    public SimpleDoubleProperty budgetLimit = new SimpleDoubleProperty(Database.getBudgetAmount(LocalDate.now().getYear(), LocalDate.now().getMonthValue()));
+
+    private final SimpleStringProperty activeStyleSheet = new SimpleStringProperty("darkMode.css");
+
+    public void initialiseApp(){
+        transactions.addAll(Database.loadTransactions());
+        recurringTransactions.addAll(Database.loadRecurringTransactions());
+    }
+
+    public Scene setupScene(Pane root){
+        Scene scene = new Scene(root);
+
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(getActiveStylesheet()).toExternalForm()));
+
+        activeStyleSheet.addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                scene.getStylesheets().setAll(Objects.requireNonNull(getClass().getResource(getActiveStylesheet()).toExternalForm()));
+            }
+        });
+
+        return scene;
+    }
+
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
+    //                     MENU BAR SETUP METHODS                   \\
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
 
     public MenuBar getMenuBar(){
         MenuBar menuBar = new MenuBar();
@@ -45,20 +72,70 @@ public class AppController {
         if (os != null && os.startsWith("Mac"))
             menuBar.useSystemMenuBarProperty().set(true);
 
+        // Settings
+
         Menu settingsMenu = new Menu("Settings");
         MenuItem appearance = new MenuItem("Appearance");
-        appearance.setOnAction(_ -> MenuBarController.getAppearanceEditor());
+        appearance.setOnAction(_ -> getAppearanceEditor());
 
         settingsMenu.getItems().addAll(appearance);
 
-        menuBar.getMenus().addAll(settingsMenu);
+        // New
+        Menu newMenu = new Menu("New");
+        MenuItem newTransaction = new MenuItem("New Transaction");
+        newTransaction.setOnAction(_ -> newTransactionDialogue());
+        MenuItem newRecurringTransaction = new MenuItem("New Recurring Transaction");
+        newRecurringTransaction.setOnAction(_ -> newRecurringTransactionDialogue());
+
+        newMenu.getItems().addAll(newTransaction, newRecurringTransaction);
+
+        menuBar.getMenus().addAll(settingsMenu, newMenu);
 
         return menuBar;
     }
 
-    public void initialiseApp(){
-        transactions.addAll(Database.loadTransactions());
-        recurringTransactions.addAll(Database.loadRecurringTransactions());
+    private void getAppearanceEditor() {
+        Stage appearanceEditor = new Stage();
+        appearanceEditor.initModality(Modality.APPLICATION_MODAL);
+        appearanceEditor.setTitle("Appearance Editor");
+
+        BorderPane root = new BorderPane();
+        root.setMinSize(500, 500);
+        root.setId("root");
+
+        // === Theme Selector ===
+
+        Label themeLabel = new Label("Theme: ");
+        themeLabel.getStyleClass().add("standardLabel");
+        themeLabel.setPrefWidth(120);
+
+        ComboBox<Theme> themeSelector = new ComboBox<>();
+        themeSelector.getItems().addAll(Theme.values());
+
+        themeSelector.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Theme>() {
+            @Override
+            public void changed(ObservableValue<? extends Theme> observable, Theme oldValue, Theme newValue) {
+                activeStyleSheet.set(newValue.getSheetName());
+            }
+        });
+
+        themeSelector.setValue(Theme.getTheme(activeStyleSheet.getValue()));
+
+        HBox themeSelectorBox = new HBox(themeLabel, themeSelector);
+        themeSelectorBox.getStyleClass().add("centerBox");
+
+        // === UI SETUP ===
+        VBox UIBox = new VBox(themeSelectorBox);
+        root.setCenter(UIBox);
+
+        Scene scene = setupScene(root);
+
+        appearanceEditor.setScene(scene);
+        appearanceEditor.show();
+    }
+
+    public String getActiveStylesheet(){
+        return activeStyleSheet.getValue();
     }
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
@@ -86,18 +163,18 @@ public class AppController {
 
         // Current Month Label
         Label monthLabel = new Label(String.valueOf(LocalDate.now().getMonth()));
-        monthLabel.getStyleClass().add("monthLabel");
-
         HBox monthBox = new HBox(monthLabel);
+
+        monthLabel.getStyleClass().add("monthLabel");
         monthBox.getStyleClass().add("monthBox");
 
         // Balance Title
         Label balanceTitle = new Label("Balance");
         balanceTitle.getStyleClass().add("sectionTitle");
 
+
         HBox balanceTitleBox = new HBox(balanceTitle);
         balanceTitleBox.getStyleClass().add("balanceTitleBox");
-
 
         // Balance Value
         StringBinding balanceStringBinding = new StringBinding() {
@@ -173,6 +250,7 @@ public class AppController {
                 Double expenses = getExpenses(transactions) + getPlannedExpenses(transactions);
                 NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
+
                 return formatter.format(expenses);
             }
         };
@@ -183,9 +261,9 @@ public class AppController {
 
         HBox spentBox = new HBox(spent, spentValueLabel);
 
-        spent.getStyleClass().add("boldLabel");
+        spent.getStyleClass().addAll("standardLabel", "bold");
         spentValueLabel.getStyleClass().add("standardLabel");
-        spentBox.getStyleClass().add("spentBox");
+        spentBox.getStyleClass().add("leftBox");
 
 
         // Remaining Data
@@ -201,7 +279,6 @@ public class AppController {
 
                 Double spent = budgetLimit.getValue() - remaining;
 
-
                 budgetDisplayBar.setProgress(spent / budgetLimit.getValue());
 
                 return formatter.format(remaining);
@@ -215,9 +292,9 @@ public class AppController {
 
         HBox remainingBox = new HBox(remaining, remainingValueLabel);
 
-        remaining.getStyleClass().add("boldLabel");
+        remaining.getStyleClass().addAll("bold", "standardLabel");
         remainingValueLabel.getStyleClass().add("standardLabel");
-        remainingBox.getStyleClass().add("remainingBox");
+        remainingBox.getStyleClass().add("rightBox");
 
 
         // Spacer
@@ -248,7 +325,7 @@ public class AppController {
         HBox incomeLabelBox = new HBox(incomeLabel);
 
         incomeLabel.getStyleClass().add("dataTitle");
-        incomeLabelBox.getStyleClass().add("dataTitleBox");
+        incomeLabelBox.getStyleClass().add("centerBox");
 
 
 
@@ -283,7 +360,7 @@ public class AppController {
         HBox expensesLabelBox = new HBox(expensesLabel);
 
         expensesLabel.getStyleClass().add("dataTitle");
-        expensesLabelBox.getStyleClass().add("dataTitleBox");
+        expensesLabelBox.getStyleClass().add("centerBox");
 
 
         StringBinding expensesStringBinding = new StringBinding() {
@@ -318,7 +395,7 @@ public class AppController {
         HBox plannedExpensesLabelBox = new HBox(plannedExpensesLabel);
 
         plannedExpensesLabel.getStyleClass().add("dataTitle");
-        plannedExpensesLabelBox.getStyleClass().add("dataTitleBox");
+        plannedExpensesLabelBox.getStyleClass().add("centerBox");
 
 
         StringBinding plannedExpensesStringBinding = new StringBinding() {
@@ -339,7 +416,7 @@ public class AppController {
         Label plannedExpensesValue = new Label();
         plannedExpensesValue.textProperty().bind(plannedExpensesStringBinding);
         plannedExpensesValue.getStyleClass().add("valueLabel");
-
+        plannedExpensesValue.setId("white");
         HBox plannedExpensesValueBox = new HBox(plannedExpensesValue);
         plannedExpensesValueBox.getStyleClass().add("yellowCard");
 
@@ -353,7 +430,7 @@ public class AppController {
         HBox netCashflowLabelBox = new HBox(netCashflowLabel);
 
         netCashflowLabel.getStyleClass().add("dataTitle");
-        netCashflowLabelBox.getStyleClass().add("dataTitleBox");
+        netCashflowLabelBox.getStyleClass().add("centerBox");
 
 
         StringBinding netCashflowStringBinding = new StringBinding() {
@@ -523,7 +600,6 @@ public class AppController {
         SearchableComboBox<Year> yearComboBox = new SearchableComboBox<>();
         yearComboBox.setMaxSize(120, 30);
         yearComboBox.getStyleClass().add("comboBox");
-
         if (!sortedTransactions.isEmpty()) {
             int startYear = sortedTransactions.getFirst().getDate().getYear();
             int endYear = sortedTransactions.getLast().getDate().getYear();
@@ -539,10 +615,9 @@ public class AppController {
 
         SearchableComboBox<Month> monthComboBox = new SearchableComboBox<>();
         monthComboBox.setValue(LocalDate.now().getMonth());
-
+        monthComboBox.getStyleClass().add("comboBox");
         monthComboBox.setMaxSize(120, 30);
 
-        monthComboBox.getStyleClass().add("comboBox");
         monthComboBox.getItems().addAll(Month.values());
 
         ObservableList<Transaction> displayTransactions = FXCollections.observableArrayList();
@@ -591,13 +666,15 @@ public class AppController {
 
 
                     Label nameLabel     = new Label(transaction.getDescription());
+                    nameLabel.getStyleClass().add("standardLabel");
                     Label dateLabel     = new Label(transaction.getDate().toString());
+                    dateLabel.getStyleClass().add("standardLabel");
                     Label categoryLabel = new Label(transaction.getCategory().toString());
+                    categoryLabel.getStyleClass().add("standardLabel");
 
                     // Amount Label Styling
                     Label amountLabel   = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount); // if the amount is an expense, put a negative sign in front of it
-                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); }
-
+                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); } else { amountLabel.getStyleClass().add("standardLabel"); }
                     // Set the Column Widths
                     nameLabel.setPrefWidth(200);
                     amountLabel.setPrefWidth(140);
@@ -606,7 +683,6 @@ public class AppController {
 
                     // Assemble Row
                     HBox row = new HBox(10, dateLabel, nameLabel, amountLabel, categoryLabel);
-
                     setGraphic(row);
                 }
             }
@@ -871,9 +947,13 @@ public class AppController {
                             .format(transaction.getAmount());
 
                     Label nameLabel      = new Label(transaction.getDescription());
+                    nameLabel.getStyleClass().add("standardLabel");
                     Label startDateLabel = new Label(transaction.getStartDate().toString());
+                    startDateLabel.getStyleClass().add("standardLabel");
                     Label categoryLabel  = new Label(transaction.getCategory().toString());
+                    categoryLabel.getStyleClass().add("standardLabel");
                     Label frequencyLabel = new Label((transaction.getFrequency().toString()));
+                    frequencyLabel.getStyleClass().add("standardLabel");
 
                     // End Date Label Setup
                     Label endDateLabel = new Label();
@@ -882,7 +962,7 @@ public class AppController {
                     // Amount Label Setup & Conditional Styling
                     Label amountLabel = new Label(transaction.isExpense() ? "-" + formattedAmount : formattedAmount);
 
-                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); }
+                    if (transaction.isExpense()){ amountLabel.getStyleClass().add("expense"); } else {amountLabel.getStyleClass().add("standardLabel");}
 
                     // Column Width
                     nameLabel.setPrefWidth(120);
@@ -961,7 +1041,7 @@ public class AppController {
         typeLabel.getStyleClass().add("standardLabel");
 
         HBox typeLabelBox = new HBox(typeLabel);
-        typeLabelBox.getStyleClass().add("labelBox");
+        typeLabelBox.getStyleClass().add("leftBox");
 
         ToggleButton expenseButton = createToggleButton("Expense", "redButton");
         ToggleButton incomeButton = createToggleButton("Income", "greenButton");
@@ -984,23 +1064,23 @@ public class AppController {
         }
 
         HBox toggleButtonsBox = new HBox(expenseButton, incomeButton);
-        toggleButtonsBox.getStyleClass().add("toggleButtonsBox");
+        toggleButtonsBox.getStyleClass().add("rightBox");
 
         // === Form Fields ===
         DatePicker datePicker = new DatePicker(transaction.getDate());
 
         TextField descriptionField = new TextField(transaction.getDescription());
 
-        ChoiceBox<Category> categories = new ChoiceBox<>();
+        ComboBox<Category> categories = new ComboBox<>();
         categories.setValue(transaction.getCategory());
         categories.getItems().addAll(Category.values());
         categories.setPrefWidth(screenWidth / 5);
-        categories.getStyleClass().add("fieldBox");
+        categories.getStyleClass().add("centerBox");
 
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
         amountSpinner.setEditable(true);
 
-        // === Submit Button ===
+
 
 
         // === Submit Button ===
@@ -1104,7 +1184,7 @@ public class AppController {
         typeLabel.getStyleClass().add("standardLabel");
 
         HBox typeLabelBox = new HBox(typeLabel);
-        typeLabelBox.getStyleClass().add("labelBox");
+        typeLabelBox.getStyleClass().add("leftBox");
 
         ToggleButton expenseButton = createToggleButton("Expense", "redButton");
         ToggleButton incomeButton = createToggleButton("Income", "greenButton");
@@ -1138,11 +1218,11 @@ public class AppController {
 
         TextField descriptionField = new TextField(transaction.getDescription());
 
-        ChoiceBox<Category> categories = new ChoiceBox<>();
+        ComboBox<Category> categories = new ComboBox<>();
         categories.setValue(transaction.getCategory());
         categories.getItems().addAll(Category.values());
         categories.setPrefWidth(screenWidth / 5);
-        categories.getStyleClass().add("fieldBox");
+        categories.getStyleClass().add("centerBox");
 
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, transaction.getAmount(), 0.01);
         amountSpinner.setEditable(true);
@@ -1373,8 +1453,7 @@ public class AppController {
         );
 
         // === Scene Setup ===
-        Scene scene = new Scene(gridPane);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+        Scene scene = setupScene(gridPane);
         dialog.setScene(scene);
 
         // === Transaction Type Toggle ===
@@ -1382,7 +1461,7 @@ public class AppController {
         typeLabel.getStyleClass().add("standardLabel");
 
         HBox typeLabelBox = new HBox(typeLabel);
-        typeLabelBox.getStyleClass().add("labelBox");
+        typeLabelBox.getStyleClass().add("leftBox");
 
         ToggleButton expenseButton = createToggleButton("Expense", "redButton");
         ToggleButton incomeButton = createToggleButton("Income", "greenButton");
@@ -1412,11 +1491,11 @@ public class AppController {
         TextField descriptionField = new TextField();
         addLabeledField(gridPane, "Description:", descriptionField, 2);
 
-        // === Category ChoiceBox ===
-        ChoiceBox<Category> categories = new ChoiceBox<>();
+        // === Category ComboBox ===
+        ComboBox<Category> categories = new ComboBox<>();
         categories.getItems().addAll(Category.values());
         categories.setPrefWidth(screenWidth / 5);
-        categories.getStyleClass().add("fieldBox");
+        categories.getStyleClass().add("centerBox");
         addLabeledField(gridPane, "Category:", categories, 3);
 
         // === Amount Spinner ===
@@ -1498,8 +1577,8 @@ public class AppController {
         );
 
         // === Scene Setup ===
-        Scene scene = new Scene(gridPane);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+        Scene scene = setupScene(gridPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(getActiveStylesheet())).toExternalForm());
         dialog.setScene(scene);
 
         // === Transaction Type Toggle ===
@@ -1507,7 +1586,7 @@ public class AppController {
         typeLabel.getStyleClass().add("standardLabel");
 
         HBox typeLabelBox = new HBox(typeLabel);
-        typeLabelBox.getStyleClass().add("labelBox");
+        typeLabelBox.getStyleClass().add("leftBox");
 
         ToggleButton expenseButton = createToggleButton("Expense", "redButton");
         ToggleButton incomeButton = createToggleButton("Income", "greenButton");
@@ -1541,19 +1620,19 @@ public class AppController {
         TextField descriptionField = new TextField();
         addLabeledField(gridPane, "Description:", descriptionField, 3);
 
-        // === Category ChoiceBox ===
-        ChoiceBox<Category> categories = new ChoiceBox<>();
+        // === Category ComboBox ===
+        ComboBox<Category> categories = new ComboBox<>();
         categories.getItems().addAll(Category.values());
         categories.setPrefWidth(screenWidth / 5);
-        categories.getStyleClass().add("fieldBox");
+        categories.getStyleClass().add("centerBox");
         addLabeledField(gridPane, "Category:", categories, 4);
 
-        // === Frequency ChoiceBox ===
-        ChoiceBox<Frequency> frequencyChoiceBox = new ChoiceBox<>();
-        frequencyChoiceBox.getItems().addAll(Frequency.values());
-        frequencyChoiceBox.setPrefWidth(screenWidth/5);
-        frequencyChoiceBox.getStyleClass().add("fieldBox");
-        addLabeledField(gridPane, "Frequency:", frequencyChoiceBox, 5);
+        // === Frequency ComboBox ===
+        ComboBox<Frequency> frequencyComboBox = new ComboBox<>();
+        frequencyComboBox.getItems().addAll(Frequency.values());
+        frequencyComboBox.setPrefWidth(screenWidth/5);
+        frequencyComboBox.getStyleClass().addAll("comboBox");
+        addLabeledField(gridPane, "Frequency:", frequencyComboBox, 5);
 
         // === Amount Spinner ===
         Spinner<Double> amountSpinner = new Spinner<>(0, Double.MAX_VALUE - 1, 0, 0.01);
@@ -1571,7 +1650,7 @@ public class AppController {
             String description = descriptionField.getText().strip();
             Double transactionAmount = amountSpinner.getValue();
             boolean isExpense = toggleGroup.getSelectedToggle() == expenseButton;
-            Frequency frequency = frequencyChoiceBox.getValue();
+            Frequency frequency = frequencyComboBox.getValue();
 
             if (category == null){
                 getErrorAlert("Empty Category Field", "Field Error");
@@ -1599,7 +1678,7 @@ public class AppController {
                 recurringTransactions.add(newTransaction);
                 Database.addRecurringTransaction(newTransaction);
 
-// Only generate future transactions for the new one!
+      // Only generate future transactions for the new one!
                 List<Transaction> future = Database.generateFutureTransactions(
                         List.of(newTransaction), LocalDate.now(), LocalDate.now().plusYears(1)
                 );
@@ -1635,8 +1714,6 @@ public class AppController {
         newStage.setTitle("Budget Limit");
 
 
-        // === xxx ===
-
         BorderPane borderPane = new BorderPane();
         borderPane.setId("root");
         borderPane.setMinSize(420, 120);
@@ -1662,7 +1739,7 @@ public class AppController {
         limitSpinner.getStyleClass().addAll("entryField");
 
         HBox limitBox = new HBox(budgetLimitLabel, spacer, limitSpinner);
-        limitBox.getStyleClass().add("fieldBox");
+        limitBox.getStyleClass().add("centerBox");
 
         // === Buttons ===
         Button confirm = new Button("Confirm");
@@ -1677,6 +1754,12 @@ public class AppController {
                     Database.editBudgetLimit(limitSpinner.getValue(), LocalDate.now().getYear(), LocalDate.now().getMonthValue());
                 }
                 budgetLimit.set(limitSpinner.getValue());
+
+                Transaction temp = new Transaction(Category.Groceries, LocalDate.now(), "Temp", 0.0, true );
+
+                transactions.addLast(temp);
+                transactions.removeLast();
+
                 newStage.close();
             }
         });
@@ -1705,13 +1788,12 @@ public class AppController {
 
         borderPane.setCenter(UIBox);
 
-        Scene scene = new Scene(borderPane);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("lightMode.css")).toExternalForm());
+        Scene scene = setupScene(borderPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(getActiveStylesheet())).toExternalForm());
 
         newStage.setScene(scene);
         newStage.show();
     }
-
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
     //                   DIALOGUE HELPER METHODS                    \\
@@ -1729,10 +1811,10 @@ public class AppController {
         label.getStyleClass().add("standardLabel");
 
         HBox labelBox = new HBox(label);
-        labelBox.getStyleClass().add("labelBox");
+        labelBox.getStyleClass().add("leftBox");
 
         HBox inputBox = new HBox(input);
-        inputBox.getStyleClass().add("fieldBox");
+        inputBox.getStyleClass().add("centerBox");
 
         if (input instanceof Control) {
             ((Control) input).setPrefWidth(screenWidth / 5);
@@ -1756,9 +1838,8 @@ public class AppController {
     private Label createHeaderLabel(String text, double width) {
         Label label = new Label(text);
         label.setMinWidth(width);
+        label.getStyleClass().addAll("bold", "standardLabel");
         return label;
     }
-
-
 
 }

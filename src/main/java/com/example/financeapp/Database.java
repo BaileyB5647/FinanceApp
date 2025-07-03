@@ -304,7 +304,6 @@ public class Database {
         return -1.0; // if out is negative
     }
 
-
     public static void editBudgetLimit(double newLimit, int year, int month){
         String updateBudgetSQL = "UPDATE budget SET budget_limit = ? WHERE year = ? AND month = ?";
 
@@ -321,6 +320,9 @@ public class Database {
             e.printStackTrace();
         }
     }
+
+
+
 }
 
 

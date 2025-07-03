@@ -1,0 +1,491 @@
+/* === ROOT DEFAULTS ===*/
+
+#root {
+    red: #F3292B;
+    green: #00974D;
+    grey: #D4D4D4;
+
+    accent: #507E9D;
+
+    -fx-padding: 50;
+}
+
+/* === TabPane Styling === */
+
+.tab-header-background {
+    -fx-background-color:  transparent;
+}
+
+.tab-header-area {
+    -fx-spacing: 50;
+}
+
+.tab {
+    -fx-padding: 0 20 0 20;  /* top, right, bottom, left padding */
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+
+    -fx-background-color: transparent;
+
+    -fx-cursor: hand;
+}
+
+.tab-label {
+    -fx-text-fill: black;
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+}
+
+.tab:selected {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: #507E9D;
+
+
+}
+
+.tab:selected .tab-label{
+    -fx-text-fill: white;
+}
+
+.tab:hover{
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+/* === General Card Style === */
+.card {
+    -fx-padding: 10;
+    -fx-background-insets: 5;
+    -fx-border-insets: 5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-background-color: white;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 4);
+}
+
+.card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+
+}
+
+/* ========== Typography ========== */
+.sectionTitle,
+.dataTitle {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+
+    -fx-text-fill: black;
+}
+
+.bold {
+    -fx-font-weight: bold;
+}
+
+.standardLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+
+    -fx-text-fill: black;
+
+}
+
+.monthLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+
+    -fx-text-fill: white;
+}
+
+.valueLabel {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 30;
+    -fx-font-weight: bold;
+
+    -fx-text-fill: black;
+}
+
+
+/* ========== Utility ========== */
+.leftBox {
+    -fx-alignment: center-left;
+}
+
+.centerBox {
+    -fx-alignment: center;
+}
+
+.rightBox {
+    -fx-alignment: center-right;
+}
+
+
+.buttonsBox {
+    -fx-padding: 10;
+    -fx-spacing: 10;
+
+    -fx-alignment: center;
+
+}
+
+#white {
+    -fx-text-fill: white;
+}
+
+#positive {
+    -fx-text-fill: green;
+}
+
+#negative {
+    -fx-text-fill: red;
+}
+
+
+/* ========== Balance Data Card ========== */
+.balanceBox {
+    -fx-background-color: grey;
+    -fx-background-radius: 10;
+    -fx-background-insets: 20;
+
+    -fx-border-color: #C4C4C4;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
+    -fx-border-width: 2;
+
+    -fx-padding: 10;
+    -fx-alignment: center;
+}
+
+.balanceTitleBox {
+    -fx-alignment: bottom-center;
+}
+
+.balanceValue {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+    -fx-font-weight: bold;
+}
+
+/* ========== Month Box ========== */
+.monthBox {
+    -fx-background-color: accent;
+    -fx-background-radius: 10;
+    -fx-background-insets: 20;
+
+    -fx-border-color: #618FAE;
+    -fx-border-radius: 10;
+    -fx-border-insets: 20;
+    -fx-border-width: 2;
+
+    -fx-padding: 10;
+    -fx-alignment: center;
+}
+
+/* ========== Budget Data Card ========== */
+.budgetTitleBox {
+    -fx-padding: 30;
+    -fx-alignment: center-left;
+}
+
+.budgetDisplayBar {
+    -fx-accent: red;
+    -fx-padding: 20;
+}
+
+.budgetDisplayBar .track {
+    -fx-background-color: green;
+    -fx-background-radius: 12;
+    -fx-background-insets: 0;
+}
+
+.budgetDisplayBar .bar {
+    -fx-background-radius: 12;
+    -fx-background-insets: 0;
+    -fx-effect: dropshadow(one-pass-box, rgba(0, 0, 0, 0.15), 4, 0.0, 0, 2);
+}
+
+.budgetDisplayLabels {
+    -fx-padding: 20;
+}
+
+/* ========== Dashboard Colored Cards ========== */
+.greenCard,
+.redCard,
+.yellowCard {
+    -fx-background-insets: 15;
+    -fx-border-insets: 15;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-alignment: center;
+}
+
+.greenCard {
+    -fx-background-color: green;
+}
+
+.redCard {
+    -fx-background-color: red;
+}
+
+.yellowCard {
+    -fx-background-color: #FEAF00;
+}
+
+.greenCard:hover,
+.redCard:hover,
+.yellowCard:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+/* ========== Add Transaction Button ========== */
+.transactionButton {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 24;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #474D51;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-cursor: hand;
+
+}
+
+.transactionButton:hover {
+    -fx-background-color: #363C40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+}
+
+.transactionButton:pressed {
+    -fx-background-color: #252B30;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0, 0);
+}
+
+/* ========== Add Transaction Styling ========== */
+#transactionRoot {
+    red: #F3292B;
+    green: #00974D;
+    grey: #D4D4D4;
+
+    accent: #507E9D;
+
+    -fx-padding: 20;
+}
+
+.toggleButton {
+    -fx-font-size: 15;
+    -fx-text-fill: black;
+
+    -fx-background-color: grey;
+    -fx-background-radius: 5;
+    -fx-background-insets: 10;
+
+    -fx-border-radius: 5;
+    -fx-border-insets: 10;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-cursor: hand;
+
+}
+
+.toggleButton:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+#redButton:selected {
+    -fx-background-color: red;
+    -fx-text-fill: white;
+}
+
+#greenButton:selected {
+    -fx-background-color: green;
+    -fx-text-fill: white;
+}
+
+/* ComboBox */
+/* The main ComboBox background and text */
+.combo-box {
+    -fx-border-color: #D4D4D4;
+    -fx-border-radius: 4;
+
+    -fx-background-color: white;  /* dark background */
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: black;
+}
+
+/* The arrow button background */
+.combo-box .arrow-button {
+    -fx-background-color: #D4D4D4;     /* darker arrow background */
+}
+
+/* The arrow symbol color */
+.combo-box .arrow-button .arrow {
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z";
+    -fx-background-insets: 0;
+    -fx-background-color: black;
+    -fx-fill: black;  /* arrow color */
+}
+
+.combo-box .text-input {
+    -fx-background-color: white;
+}
+
+/* The dropdown list background and text */
+.combo-box-popup .list-view {
+    -fx-background-color: white;  /* dark background */
+    -fx-text-fill: black;
+}
+
+/* List cells in dropdown */
+.combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+}
+
+/* Hover on list cells */
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #C4C4C4;
+}
+
+/* Selected list cell */
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #507E9D;
+    -fx-text-fill: white;
+}
+
+/* Confirm/Cancel Buttons */
+.button {
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 2, 4);
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 2, 4);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.button:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0), 0, 0, 0, 0);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 2, 4);
+}
+
+.confirm{
+    -fx-background-color: green;
+    -fx-cursor: hand;
+}
+
+.cancel {
+    -fx-background-color: red;
+    -fx-cursor: hand;
+
+}
+
+
+/* ========== List View Styling ========== */
+.listTab {
+    red:  #F3292B;
+    green: #00974D;
+
+    accent: #507E9D;
+
+    -fx-padding: 30;
+}
+
+.listView {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.listView .cell {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+
+    -fx-cursor: hand;
+}
+
+.listView .cell .expense {
+    -fx-font-weight: bold;
+    -fx-text-fill: #F3292B;
+}
+
+.listView .cell:selected{
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+
+    -fx-background-color: accent;
+}
+
+.listHeader {
+    -fx-padding: 10;
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+
+}
+
+#transactionEditor {
+    -fx-translate-x: 20;
+
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 10, 4);
+}
+
+#transactionEditor:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 10, 4);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+/* ========== Chart Styling ========== */
+
+.chart {
+    -fx-legend-visible: false;
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 15;
+
+}
+
+.chart-series-line.default-color0 {
+    -fx-stroke: #507E9D;
+}
+
+.chart-line-symbol.default-color0 {
+    -fx-background-color: #507E9D;
+}
+
+
+.chart-title {
+    -fx-font-family: 'Helvetica', sans-serif;
+    -fx-font-size: 25;
+    -fx-text-fill: black;
+}
+
+.chart-horizontal-zero-line {
+    -fx-stroke: black;
+    -fx-stroke-width: 2;
+}
+
+.axis-label {
+    -fx-text-fill: black;
+}
+
+.axis {
+    -fx-tick-label-fill: black;
+}
