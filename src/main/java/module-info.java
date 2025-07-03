@@ -4,6 +4,7 @@ module com.example.financeapp {
     requires java.sql;
     requires java.desktop;
     requires org.controlsfx.controls;
+    requires java.prefs;
 
 
     opens com.example.financeapp to javafx.fxml;

@@ -40,7 +40,7 @@ public class AppController {
 
     public SimpleDoubleProperty budgetLimit = new SimpleDoubleProperty(Database.getBudgetAmount(LocalDate.now().getYear(), LocalDate.now().getMonthValue()));
 
-    private final SimpleStringProperty activeStyleSheet = new SimpleStringProperty("darkMode.css");
+    public SimpleStringProperty activeStyleSheet = new SimpleStringProperty(ThemeManager.loadTheme());
 
     public void initialiseApp(){
         transactions.addAll(Database.loadTransactions());

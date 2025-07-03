@@ -19,7 +19,7 @@ public class FinanceApp extends Application {
     @Override
     public void start(Stage stage) {
         AppController appController = new AppController();
-
+        stage.setTitle("Finance App");
         Database.init();
         appController.initialiseApp();
 
@@ -42,6 +42,13 @@ public class FinanceApp extends Application {
         tabPane.getTabs().addAll(dashboard, forecast, transactions, recurringTransactions);
 
         Scene scene = appController.setupScene(root);
+
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                ThemeManager.saveTheme(appController.getActiveStylesheet());
+            }
+        });
 
         stage.setScene(scene);
         stage.show();
