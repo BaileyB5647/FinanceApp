@@ -42,11 +42,24 @@ public class AppController {
 
     public SimpleStringProperty activeStyleSheet = new SimpleStringProperty(ThemeManager.loadTheme());
 
+    /**
+     * Initializes the application by loading transactions and recurring transactions
+     * from the database and populating the respective collections.
+     */
     public void initialiseApp(){
         transactions.addAll(Database.loadTransactions());
         recurringTransactions.addAll(Database.loadRecurringTransactions());
     }
 
+
+    /**
+     * Sets up and returns a new {@link Scene} for the given root pane.
+     * The scene will apply the active stylesheet and listen for changes
+     * to the stylesheet, updating the scene stylesheets dynamically.
+     *
+     * @param root the root {@link Pane} to be used in the scene
+     * @return a configured {@link Scene} with the active stylesheet applied
+     */
     public Scene setupScene(Pane root){
         Scene scene = new Scene(root);
 
@@ -66,6 +79,19 @@ public class AppController {
     //                     MENU BAR SETUP METHODS                   \\
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- \\
 
+    /**
+     * Creates and returns the main application {@link MenuBar} with platform-specific settings.
+     *
+     * <p>On Mac systems, the menu bar is integrated into the system menu bar.
+     * The menu bar includes:
+     * <ul>
+     *     <li>A "Settings" menu with an "Appearance" item that opens the appearance editor.</li>
+     *     <li>A "New" menu with options to create a new transaction or a new recurring transaction.</li>
+     * </ul>
+     * </p>
+     *
+     * @return a configured {@link MenuBar} with application menus and actions
+     */
     public MenuBar getMenuBar(){
         MenuBar menuBar = new MenuBar();
         final String os = System.getProperty("os.name");
@@ -93,6 +119,8 @@ public class AppController {
 
         return menuBar;
     }
+
+
 
     private void getAppearanceEditor() {
         Stage appearanceEditor = new Stage();
@@ -134,6 +162,11 @@ public class AppController {
         appearanceEditor.show();
     }
 
+    /**
+     * Returns the path of the currently active stylesheet.
+     *
+     * @return the active stylesheet file path as a {@link String}
+     */
     public String getActiveStylesheet(){
         return activeStyleSheet.getValue();
     }
