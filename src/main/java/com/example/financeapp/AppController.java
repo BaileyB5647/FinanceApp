@@ -635,29 +635,26 @@ public class AppController {
             }
         }
 
-        transactions.addListener(new ListChangeListener<Transaction>() {
-            @Override
-            public void onChanged(Change<? extends Transaction> c) {
-                if (!yearComboBox.getItems().isEmpty()){
-                    yearComboBox.getSelectionModel().clearSelection();
-                    yearComboBox.getItems().clear();
-                }
-
-                if (!transactions.isEmpty()) {
-                    int startYear = sortedTransactions.getFirst().getDate().getYear();
-                    int endYear = sortedTransactions.getLast().getDate().getYear();
-
-                    for (int i = startYear; i <= endYear; i++) {
-                        yearComboBox.getItems().add(Year.of(i));
-                    }
-
-
-                    if (!yearComboBox.getItems().isEmpty()){
-                        yearComboBox.getSelectionModel().selectFirst();
-                    }
-                }
-
+        transactions.addListener((ListChangeListener<Transaction>) _ -> {
+            if (!yearComboBox.getItems().isEmpty()){
+                yearComboBox.getSelectionModel().clearSelection();
+                yearComboBox.getItems().clear();
             }
+
+            if (!transactions.isEmpty()) {
+                int startYear = sortedTransactions.getFirst().getDate().getYear();
+                int endYear = sortedTransactions.getLast().getDate().getYear();
+
+                for (int i = startYear; i <= endYear; i++) {
+                    yearComboBox.getItems().add(Year.of(i));
+                }
+
+
+                if (!yearComboBox.getItems().isEmpty()){
+                    yearComboBox.getSelectionModel().selectFirst();
+                }
+            }
+
         });
 
         SearchableComboBox<Month> monthComboBox = new SearchableComboBox<>();
